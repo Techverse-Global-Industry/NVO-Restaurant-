@@ -1,0 +1,865 @@
+/* NVO guest privileges: gold-edged tickets, calm royal blue, warm paper. */
+.header-actions .language {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+  line-height: 1;
+}
+.header-actions .language span {
+  margin: 0;
+  font-size: inherit;
+  line-height: 1;
+}
+.header-actions .language svg {
+  display: block;
+  flex: none;
+  width: 12px;
+  height: 12px;
+}
+.coupon-intro {
+  position: relative;
+  text-align: center;
+  padding: 100px 24px 75px;
+  background: radial-gradient(
+    ellipse at 50% 5%,
+    #24538c 0%,
+    #0c2e60 43%,
+    #071c3d 100%
+  );
+  color: white;
+  overflow: hidden;
+}
+.coupon-intro:before,
+.coupon-intro:after {
+  content: "";
+  position: absolute;
+  width: 440px;
+  height: 440px;
+  border: 1px solid #d6b66938;
+  border-radius: 50%;
+  left: -230px;
+  top: 15%;
+  pointer-events: none;
+}
+.coupon-intro:after {
+  left: auto;
+  right: -250px;
+  top: -170px;
+  width: 620px;
+  height: 620px;
+}
+.coupon-intro > .eyebrow {
+  display: block;
+  color: #e6ca86;
+  margin-bottom: 20px;
+}
+.coupon-intro > svg {
+  color: #e5c47d;
+  margin: auto;
+}
+.coupon-intro h1 {
+  font-size: clamp(40px, 6vw, 76px);
+  line-height: 1.08;
+  margin: 24px 0;
+  font-weight: 400;
+}
+.coupon-intro h1 em {
+  color: #e6ca86;
+}
+.coupon-intro p {
+  max-width: 540px;
+  margin: 20px auto 25px;
+  color: #dfe8f6;
+  line-height: 1.8;
+}
+.coupon-intro .underlined {
+  color: #e6ca86;
+}
+.offer-ticket {
+  padding: 34px;
+  background: linear-gradient(140deg, #fffefa, #f5eddc);
+  border: 1px solid #d9cba8;
+  border-radius: 20px;
+  box-shadow: 0 15px 40px #0928500b;
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+}
+.offer-ticket h2 {
+  font-size: 28px;
+  line-height: 1.25;
+  margin: 22px 0 12px;
+}
+.offer-ticket > p {
+  line-height: 1.8;
+  color: #46566c;
+}
+.offer-benefit {
+  font-family: Georgia, serif;
+  font-size: 55px;
+  color: #153b6c;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+  gap: 12px;
+}
+.offer-benefit svg {
+  color: #98772c;
+  flex-shrink: 0;
+}
+.offer-facts {
+  display: grid;
+  gap: 9px;
+  font-size: 12px;
+  padding: 20px 0;
+  margin: 20px 0;
+  border-block: 1px dashed #bda76f;
+}
+.offer-facts span:before {
+  content: "✧";
+  margin-right: 9px;
+  color: #97772f;
+}
+.offer-ticket.is-claimed {
+  border-color: #3d725b;
+}
+.claim-seal {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  color: #22593f;
+  background: #e9f2e9;
+  padding: 17px;
+  border: 1px solid #bed2c2;
+  border-radius: 10px;
+}
+.claim-seal strong {
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+.claim-seal small {
+  display: block;
+  margin-top: 6px;
+  line-height: 1.6;
+}
+.coupon-name-form {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #d5c8a6;
+}
+.coupon-name-form p {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #566276;
+}
+.wallet-intro {
+  margin: 90px 0 32px;
+  scroll-margin-top: 110px;
+  max-width: 650px;
+}
+.wallet-intro h2 {
+  font-size: clamp(30px, 4vw, 43px);
+  margin: 16px 0;
+}
+.wallet-intro p {
+  color: #526079;
+  line-height: 1.8;
+}
+.coupon-wallet {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+  align-items: start;
+}
+.nvo-ticket {
+  border-radius: 22px;
+  background: #fffaf0;
+  box-shadow: 0 20px 50px #0b29421b;
+  overflow: hidden;
+  border: 1px solid #ceba83;
+  min-width: 0;
+}
+.ticket-top {
+  color: white;
+  background: radial-gradient(ellipse at 100% 0%, #285790, #0c2b55 65%);
+  padding: 32px;
+  position: relative;
+}
+.ticket-top:after {
+  content: "N";
+  position: absolute;
+  font-family: Georgia, serif;
+  right: -2px;
+  bottom: -50px;
+  font-size: 240px;
+  color: #ffffff07;
+  pointer-events: none;
+}
+.ticket-brand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+.ticket-brand > span {
+  font-family: Georgia, serif;
+  letter-spacing: 4px;
+  font-size: 44px;
+  color: #ead298;
+}
+.ticket-brand > small {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #e0cb99;
+}
+.ticket-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #f4e6bd;
+  font-size: 10px;
+  border: 1px solid #d4b3667a;
+  border-radius: 6px;
+  padding: 7px 10px;
+  margin: 17px 0;
+}
+.ticket-top h3 {
+  font-size: 28px;
+  line-height: 1.3;
+  font-weight: 400;
+  margin: 5px 0 28px;
+  color: white;
+}
+.ticket-name-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #dcc48c;
+  margin-bottom: 8px;
+}
+.ticket-name {
+  font-size: 23px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.ticket-perforation {
+  height: 24px;
+  position: relative;
+  background: linear-gradient(#0c2b55 0 50%, #fffaf0 50%);
+}
+.ticket-perforation:before {
+  content: "";
+  position: absolute;
+  top: 11px;
+  left: 22px;
+  right: 22px;
+  border-top: 2px dashed #d3b66e;
+}
+.ticket-perforation:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 0 50%, #faf9f6 12px, transparent 13px),
+    radial-gradient(circle at 100% 50%, #faf9f6 12px, transparent 13px);
+}
+.ticket-bottom {
+  padding: 25px 32px 32px;
+}
+.ticket-bottom > code {
+  font-size: clamp(17px, 2.3vw, 25px);
+  letter-spacing: 2px;
+  display: block;
+  color: #113568;
+  font-weight: 700;
+  margin-bottom: 22px;
+  overflow-wrap: anywhere;
+}
+.ticket-bottom dl {
+  font-size: 12px;
+  display: grid;
+  gap: 12px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e6dcca;
+}
+.ticket-bottom dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+.ticket-bottom dt {
+  color: #57667c;
+}
+.ticket-bottom dd {
+  margin: 0;
+  text-align: right;
+  color: #133667;
+}
+.ticket-bottom details {
+  font-size: 12px;
+  line-height: 1.7;
+  margin-top: 20px;
+  color: #344c65;
+}
+.ticket-bottom summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.ticket-contact {
+  font-size: 11px;
+  line-height: 2;
+  margin: 20px 0;
+  color: #465b74;
+}
+.ticket-contact svg {
+  vertical-align: middle;
+  margin-right: 7px;
+}
+.ticket-bottom .button-row {
+  gap: 8px;
+}
+.ticket-bottom .button {
+  font-size: 10px;
+  padding: 13px 15px;
+}
+.desk-heading {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+.desk-icon {
+  background: #eaf0fb;
+  border: 1px solid #d6dfec;
+  border-radius: 18px;
+  padding: 19px;
+  color: #194e84;
+}
+.desk-heading h2 {
+  margin: 8px 0 !important;
+}
+.coupon-search {
+  display: flex !important;
+  align-items: end;
+  gap: 15px;
+  margin: 25px 0 !important;
+}
+.coupon-search label {
+  flex: 1;
+}
+.coupon-search .button {
+  margin-bottom: 1px;
+}
+.coupon-verification {
+  display: grid;
+  grid-template-columns: minmax(200px, 0.7fr) minmax(0, 1.3fr);
+  border: 1px solid #d7e0ec;
+  border-radius: 16px;
+  overflow: hidden;
+  margin: 25px 0;
+}
+.verified-guest {
+  background: #edf2fa;
+  padding: 25px;
+}
+.verified-guest code {
+  display: block;
+  margin: 20px 0;
+  font-size: 15px;
+}
+.verified-guest p,
+.verified-guest small {
+  font-size: 12px;
+  line-height: 1.8;
+}
+.verified-guest h3 {
+  font-family: Georgia, serif;
+  font-size: 27px;
+  overflow-wrap: anywhere;
+}
+.counter-sale {
+  padding: 25px;
+}
+.counter-sale h3 {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.sale-line {
+  display: grid;
+  grid-template-columns: minmax(100px, 1fr) 55px 90px 28px;
+  gap: 9px;
+  align-items: end;
+}
+.sale-line input,
+.sale-line select {
+  padding: 10px !important;
+  min-width: 0;
+}
+.sale-line label {
+  font-size: 10px !important;
+  min-width: 0;
+}
+.sale-line button {
+  padding: 10px 0;
+  margin-bottom: 2px;
+}
+.sale-total {
+  background: #f4f7ed;
+  padding: 18px;
+  border-radius: 12px;
+  display: grid;
+  gap: 12px;
+}
+.sale-total > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sale-total dd {
+  margin: 0;
+  white-space: nowrap;
+}
+.sale-total > div:last-child {
+  border-top: 1px solid #d6decb;
+  padding-top: 13px;
+  font-weight: 700;
+}
+.counter-sale .check-label {
+  display: flex;
+  align-items: start;
+  gap: 10px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.check-label input {
+  width: auto !important;
+  margin: 3px 0;
+}
+.counter-receipt {
+  margin: 20px;
+  padding: 25px;
+  background: #f2f7ed;
+  border: 1px solid #bcd0ab;
+  border-radius: 12px;
+}
+.counter-receipt > svg {
+  color: #376244;
+}
+.counter-receipt p {
+  font-size: 12px;
+}
+.counter-receipt > strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.claim-register {
+  border-top: 1px solid #e1e7ef;
+  padding-top: 26px;
+  margin-top: 30px;
+}
+.claim-register > label {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+}
+.claim-register-list {
+  margin-top: 18px;
+  max-height: 430px;
+  overflow: auto;
+}
+.claim-register-list > button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 16px 5px;
+  border-bottom: 1px solid #e5e9ee;
+  text-align: left;
+}
+.claim-register-list strong,
+.claim-register-list small,
+.claim-register-list code {
+  display: block;
+}
+.claim-register-list small {
+  font-size: 11px;
+  color: #5b687b;
+  margin-top: 6px;
+}
+.claim-register-list code {
+  font-size: 11px;
+  margin-top: 8px;
+}
+.claim-register-list > button > span:last-child {
+  text-align: right;
+}
+.bilingual-editor {
+  padding: 20px;
+  border: 1px solid #d6deeb;
+  background: linear-gradient(135deg, #f3f6fc, #fffdfa);
+  border-radius: 14px;
+  display: grid;
+  gap: 16px;
+}
+.bilingual-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.bilingual-header > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #194578;
+  font-size: 13px;
+}
+.bilingual-header .toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.toggle-label input {
+  width: auto !important;
+}
+.translation-status {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 11px;
+  color: #356146;
+  margin: 0;
+}
+.bilingual-editor textarea {
+  min-height: 155px;
+}
+.auto-caption-note {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid #d4e1d3;
+  border-radius: 12px;
+  background: #eff6ec;
+  padding: 16px;
+  margin: 22px 0;
+}
+.auto-caption-note > svg {
+  color: #577641;
+  flex-shrink: 0;
+}
+.auto-caption-note strong {
+  font-size: 12px;
+}
+.auto-caption-note p {
+  font-size: 11px;
+  line-height: 1.65;
+  margin: 5px 0 0;
+}
+.social-options textarea[readonly] {
+  background: #fbfcfe;
+  cursor: default;
+}
+/* Motion is opt-in after hydration; all content remains visible without JS. */
+.taste-switcher {
+  position: absolute;
+  z-index: 5;
+  left: 7%;
+  right: 0;
+  bottom: -20px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.taste-switcher button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #071d42eb;
+  color: #f3e4bb;
+  padding: 10px 13px;
+  border: 1px solid #ba9c5a55;
+  border-radius: 25px;
+  font-size: 9px;
+  letter-spacing: 0.3px;
+  backdrop-filter: blur(8px);
+}
+.taste-switcher button[aria-pressed="true"] {
+  background: #e9d29b;
+  color: #102e54;
+  border-color: #e9d29b;
+}
+.taste-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.kitchen-steam {
+  position: absolute;
+  top: 3%;
+  left: 40%;
+  width: 100px;
+  height: 150px;
+  fill: none;
+  stroke: #fff5db;
+  stroke-width: 2;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+.kitchen-steam path {
+  stroke-linecap: round;
+  stroke-dasharray: 180;
+  stroke-dashoffset: 180;
+}
+@keyframes nvo-steam {
+  0% {
+    stroke-dashoffset: 180;
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  30% {
+    opacity: 0.55;
+  }
+  80% {
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: -180;
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+html[data-motion="on"] .kitchen-steam {
+  opacity: 0.8;
+}
+html[data-motion="on"] .kitchen-steam path {
+  animation: nvo-steam 4.5s ease-out infinite;
+}
+html[data-motion="on"] .kitchen-steam path:nth-child(2) {
+  animation-delay: 1.2s;
+}
+html[data-motion="on"] .kitchen-steam path:nth-child(3) {
+  animation-delay: 2.5s;
+}
+html[data-motion="on"] .royal-main-photo img {
+  animation: nvo-enter 0.6s ease-out;
+}
+.motion-control {
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  background: #fffdf5ef;
+  color: #173b63;
+  border: 1px solid #cbbc98;
+  border-radius: 25px;
+  box-shadow: 0 3px 16px #0e264414;
+  padding: 8px 12px;
+}
+.reading-progress {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 3px;
+  background: #d6b260;
+  z-index: 1000;
+  width: 100%;
+  transform-origin: left;
+  transform: scaleX(0);
+  pointer-events: none;
+}
+@supports (animation-timeline: scroll()) {
+  html[data-motion="on"] .reading-progress {
+    animation: reading linear both;
+    animation-timeline: scroll(root);
+  }
+}
+@keyframes reading {
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes nvo-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes nvo-stamp {
+  0% {
+    transform: scale(1.13) rotate(-5deg);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(0.97) rotate(1deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+@keyframes nvo-enter {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+html[data-motion="on"] .spin {
+  animation: nvo-spin 1.2s linear infinite;
+}
+html[data-motion="on"] .claim-seal,
+html[data-motion="on"] .ticket-stamp,
+html[data-motion="on"] .counter-receipt {
+  animation: nvo-stamp 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+html[data-motion="on"] .coupon-name-form,
+html[data-motion="on"] .coupon-verification,
+html[data-motion="on"] .social-options [role="tabpanel"],
+html[data-motion="on"] .toast {
+  animation: nvo-enter 0.35s ease-out;
+}
+html[data-motion="on"] .button,
+html[data-motion="on"] .admin-nav button,
+html[data-motion="on"] .social-choice,
+html[data-motion="on"] .offer-ticket {
+  transition:
+    transform 0.25s,
+    box-shadow 0.25s,
+    background 0.25s,
+    border-color 0.25s;
+}
+html[data-motion="on"] .button:active {
+  transform: scale(0.97);
+}
+html[data-motion="on"] .button svg {
+  transition: transform 0.25s;
+}
+html[data-motion="on"] .button:hover svg {
+  transform: translateX(3px);
+}
+html[data-motion="on"] .admin-nav button:hover {
+  transform: translateX(3px);
+}
+html[data-motion="on"] .social-choice.selected {
+  box-shadow: 0 0 0 2px #c8ac6866;
+}
+@media (hover: hover) and (pointer: fine) {
+  html[data-motion="on"] .post-card img,
+  html[data-motion="on"] .meal-card img,
+  html[data-motion="on"] .gallery-item img {
+    transition:
+      transform 0.7s cubic-bezier(0.2, 0.75, 0.2, 1),
+      filter 0.7s;
+  }
+  html[data-motion="on"] .post-card:hover img,
+  html[data-motion="on"] .meal-card:hover img,
+  html[data-motion="on"] .gallery-item:hover img {
+    transform: scale(1.035);
+    filter: saturate(1.08);
+  }
+  html[data-motion="on"] .offer-ticket:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 24px 45px #09285013;
+  }
+}
+html[data-motion="off"] *,
+html[data-motion="off"] *:before,
+html[data-motion="off"] *:after {
+  animation: none !important;
+  scroll-behavior: auto !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *:before,
+  *:after {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
+@media (max-width: 800px) {
+  .coupon-wallet {
+    grid-template-columns: 1fr;
+  }
+  .coupon-verification {
+    grid-template-columns: 1fr;
+  }
+  .bilingual-editor .form-row {
+    grid-template-columns: 1fr;
+  }
+  .coupon-intro {
+    padding: 65px 20px 55px;
+  }
+  .desk-heading {
+    align-items: start;
+  }
+  .desk-icon {
+    padding: 12px;
+  }
+  .sale-line {
+    grid-template-columns: minmax(95px, 1fr) 48px 82px 23px;
+    gap: 6px;
+  }
+  .coupon-search {
+    flex-wrap: wrap;
+  }
+  .coupon-search .button {
+    width: 100%;
+  }
+  .ticket-top,
+  .ticket-bottom {
+    padding: 25px;
+  }
+  .offer-ticket {
+    padding: 25px;
+  }
+  .counter-sale {
+    padding: 16px;
+  }
+  .motion-control span {
+    display: none;
+  }
+  .motion-control {
+    padding: 8px;
+  }
+  .wallet-intro {
+    margin-top: 65px;
+  }
+}
+@media (max-width: 700px) {
+  .taste-switcher {
+    bottom: -15px;
+    left: 0;
+    right: 0;
+    gap: 5px;
+  }
+  .taste-switcher button {
+    font-size: 8px;
+    padding: 8px 10px;
+  }
+  .royal-hero-art {
+    margin-bottom: 45px !important;
+  }
+  .kitchen-steam {
+    height: 110px;
+  }
+  .art-caption {
+    display: none;
+  }
+}

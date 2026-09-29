@@ -1,0 +1,28 @@
+[Unit]
+Description=NVO Restaurant
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=120
+StartLimitBurst=10
+
+[Service]
+Type=simple
+User=nvo
+Group=nvo
+WorkingDirectory=/srv/nvo
+Environment=NODE_ENV=production
+EnvironmentFile=/etc/nvo/nvo.env
+# Verify this path with command -v node on the server (Node 24 required).
+ExecStart=/usr/bin/node /srv/nvo/server.mjs
+Restart=always
+RestartSec=5
+TimeoutStopSec=60
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/srv/nvo/data /srv/nvo/.next/cache
+
+[Install]
+WantedBy=multi-user.target

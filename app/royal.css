@@ -1,0 +1,1591 @@
+:root {
+  --navy: #0c2048;
+  --blue: #173d88;
+  --gold: #896323;
+  --cream: #f7f5ee;
+  --paper: #fffefa;
+  --muted: #626774;
+  --line: #e6e3dc;
+}
+.text-button {
+  border: 0;
+  background: none;
+  padding: 5px 0;
+  color: var(--navy);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.admin-panel h2 {
+  font-family: var(--serif);
+}
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px;
+}
+.announcement {
+  background: #0a1b3c;
+  color: #ead7ae;
+}
+.site-header {
+  height: 90px;
+  background: #fffefaf5;
+}
+.brand {
+  color: var(--navy);
+}
+.brand-sub {
+  letter-spacing: 2px;
+}
+.button {
+  border-radius: 4px;
+  min-height: 46px;
+  transition:
+    transform 0.2s,
+    background 0.2s,
+    box-shadow 0.2s;
+}
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 22px #09234b19;
+}
+.gold-button {
+  background: #e4c58c;
+  color: #15213a;
+  border: 1px solid #e4c58c;
+}
+.gold-button:hover {
+  background: #f0d7a7;
+  color: #15213a;
+}
+.eyebrow {
+  color: #62665f;
+  font-size: 10px;
+  letter-spacing: 2.1px;
+  font-weight: 600;
+}
+.royal-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #c5ac7970;
+  padding: 8px 0;
+  color: #f4ead6;
+  font-size: 13px;
+}
+.royal-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.02fr 1fr;
+  background: radial-gradient(
+    ellipse at 80% 35%,
+    #214b93 0%,
+    #102c60 38%,
+    #091c40 80%
+  );
+  color: #fffaf0;
+  padding: 78px 5.5% 65px;
+  min-height: 740px;
+  overflow: hidden;
+  gap: 3%;
+}
+.royal-hero:before {
+  content: "";
+  position: absolute;
+  inset: 20px;
+  border: 1px solid #e4c58c24;
+  pointer-events: none;
+}
+.royal-hero-copy {
+  z-index: 2;
+  padding: 28px 0 46px;
+}
+.royal-hero .eyebrow {
+  color: #dfc68f;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.royal-hero h1 {
+  font-size: clamp(48px, 4.8vw, 78px);
+  line-height: 1.14;
+  letter-spacing: -2.8px;
+  margin: 28px 0 23px;
+}
+.royal-hero h1 em {
+  color: #ebce98;
+}
+.royal-hero-copy > p {
+  color: #d5dcec;
+  max-width: 405px;
+  font-size: 15px;
+  line-height: 1.9;
+}
+.hero-signature {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #d9c59e;
+  margin-top: 36px;
+  font-size: 9px;
+  letter-spacing: 1.4px;
+}
+.royal-hero-art {
+  position: relative;
+  min-height: 545px;
+}
+.royal-main-photo {
+  position: absolute;
+  left: 12%;
+  right: 0;
+  top: 6%;
+  height: 88%;
+  border-radius: 48% 48% 4px 4px;
+  overflow: hidden;
+  box-shadow: 0 30px 60px #0005;
+  border: 1px solid #e4c58c90;
+}
+.royal-main-photo img {
+  object-position: 50% 62%;
+}
+.royal-side-photo {
+  position: absolute;
+  width: 41%;
+  height: 43%;
+  left: -2%;
+  bottom: -2%;
+  border: 7px solid #fff8eb;
+  border-radius: 50% 50% 7px 7px;
+  overflow: hidden;
+  transform: rotate(-9deg);
+  box-shadow: 0 20px 35px #0005;
+}
+.royal-seal {
+  position: absolute;
+  right: -3%;
+  top: 0;
+  width: 115px;
+  height: 115px;
+  border-radius: 50%;
+  background: #e6cb96;
+  color: #162548;
+  border: 1px solid #f7dfb4;
+  outline: 1px solid #e6cb9660;
+  outline-offset: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-family: var(--serif);
+  font-size: 15px;
+  letter-spacing: 1px;
+  line-height: 1.2;
+  text-align: center;
+  transform: rotate(12deg);
+}
+.seal-stars {
+  font: 8px var(--sans);
+  letter-spacing: 4px;
+}
+.hero-orbit {
+  position: absolute;
+  inset: 0 -8% 0 -3%;
+  border: 1px solid #dac18d30;
+  border-radius: 50%;
+  transform: rotate(20deg);
+}
+.orbit-two {
+  inset: 6% -15% -4% -5%;
+  transform: rotate(-25deg);
+}
+.hero-flourish {
+  position: absolute;
+  left: 41%;
+  bottom: 10%;
+  font-size: 120px;
+  color: #d9bd8033;
+  line-height: 1;
+}
+.art-caption {
+  position: absolute;
+  bottom: -35px;
+  right: 0;
+  color: #c2d0e8;
+  font: italic 14px var(--serif);
+}
+.hero-bottom {
+  grid-column: 1/-1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #e4c58c25;
+  padding-top: 20px;
+  margin-top: 34px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #c3cce0;
+}
+.hero-bottom > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.royal-ribbon {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+  padding: 25px 5.5%;
+  background: #e9d3a8;
+  color: #1a2d51;
+}
+.royal-ribbon > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 45px;
+  font: italic 22px var(--serif);
+  white-space: nowrap;
+}
+.royal-ribbon i {
+  font: 17px var(--sans);
+  color: #856331;
+}
+.section {
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.royal-favourites {
+  padding-top: 100px;
+  padding-bottom: 65px;
+}
+.section-heading > div:last-child > p {
+  max-width: 350px;
+  margin-bottom: 20px;
+  line-height: 1.8;
+}
+.meal-card {
+  border: 1px solid var(--line);
+  background: #fff;
+  box-shadow: 0 12px 25px #12244105;
+  transition:
+    transform 0.3s,
+    box-shadow 0.3s;
+  overflow: hidden;
+  border-radius: 6px;
+}
+.meal-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 18px 38px #12244112;
+}
+.meal-photo {
+  border-radius: 0;
+  aspect-ratio: 1.08;
+}
+.meal-photo img {
+  transition: transform 0.6s;
+}
+.meal-card:hover .meal-photo img {
+  transform: scale(1.045);
+}
+.meal-info {
+  padding: 25px !important;
+}
+.meal-info .eyebrow {
+  font-size: 9px;
+  color: #65685e;
+}
+.meal-bottom > span {
+  color: #606457;
+}
+.page-intro {
+  background: radial-gradient(ellipse at 85% 10%, #234983, #0c224b 75%);
+  color: #fff8ea;
+  position: relative;
+  border-bottom: 3px solid #d4b77e;
+}
+.page-intro:after {
+  content: "✦";
+  position: absolute;
+  right: 9%;
+  top: 22%;
+  font-size: 130px;
+  line-height: 1;
+  color: #e0c08813;
+  pointer-events: none;
+}
+.page-intro h1 {
+  position: relative;
+  z-index: 1;
+}
+.page-intro > .eyebrow {
+  color: #e6cc96;
+}
+.page-intro p {
+  color: #d2daea;
+}
+.meal-info h3 {
+  font: 25px var(--serif);
+}
+.meal-info p {
+  font-size: 13px;
+  line-height: 1.75;
+}
+.photo-badge {
+  background: var(--navy);
+  color: #ead4a5;
+  border: 1px solid #dac08b70;
+}
+.meal-bottom button {
+  background: var(--navy);
+  color: #fff;
+}
+.meal-bottom {
+  border-top: 1px solid var(--line);
+  padding-top: 17px;
+}
+.royal-story {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9%;
+  align-items: center;
+  padding-top: 55px;
+  padding-bottom: 110px;
+}
+.story-photo-stack {
+  height: 550px;
+  position: relative;
+}
+.story-tall-photo {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 76%;
+  height: 90%;
+  overflow: hidden;
+  border-radius: 200px 200px 4px 4px;
+}
+.story-small-photo {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 48%;
+  height: 53%;
+  border: 8px solid var(--paper);
+  border-radius: 5px;
+  overflow: hidden;
+  transform: rotate(5deg);
+}
+.story-handwritten {
+  position: absolute;
+  right: -8%;
+  top: 10%;
+  white-space: pre-line;
+  font: italic 27px var(--serif);
+  color: var(--gold);
+  transform: rotate(9deg);
+  text-align: center;
+}
+.royal-story-copy h2 {
+  margin: 20px 0 25px;
+  font-size: clamp(34px, 3.1vw, 47px);
+  line-height: 1.22;
+}
+.royal-story-copy > p {
+  margin-bottom: 18px;
+  line-height: 1.9;
+}
+.story-values {
+  margin-top: 35px;
+  padding-top: 25px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.story-values > span {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 11px;
+}
+.story-values svg {
+  color: var(--gold);
+}
+.kitchen-film {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 8%;
+  align-items: center;
+  background: #edf0f5;
+  padding-top: 65px;
+  padding-bottom: 65px;
+  max-width: none;
+}
+.film-copy {
+  padding-left: 4vw;
+}
+.film-copy h2 {
+  margin: 20px 0;
+  font-size: clamp(42px, 4vw, 62px);
+}
+.film-copy p {
+  max-width: 340px;
+  line-height: 1.9;
+}
+.film-length {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  margin-top: 25px;
+}
+.film-frame {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 1.6;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--navy);
+  box-shadow: 0 20px 45px #10254d25;
+}
+.film-poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  border: 0;
+  background: var(--navy);
+  color: white;
+  padding: 0;
+}
+.film-poster:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, #081a3dda, transparent 75%);
+}
+.play-circle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px solid #ffe3ad;
+  background: #12275080;
+  backdrop-filter: blur(5px);
+  border-radius: 50%;
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  z-index: 1;
+  color: #ffe1a4;
+  transition: background 0.2s;
+}
+.film-poster:hover .play-circle {
+  background: #183c7dbd;
+}
+.film-label {
+  position: absolute;
+  bottom: 25px;
+  left: 30px;
+  z-index: 1;
+  font: italic 24px var(--serif);
+}
+.film-frame video {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  object-fit: contain;
+}
+.film-close {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  background: var(--navy);
+  color: white;
+  border: 1px solid #d1b77c;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+}
+.royal-special {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0;
+  margin: 90px 5.5%;
+  max-width: none;
+  background: var(--navy);
+  color: #fff;
+  overflow: hidden;
+  border-radius: 8px;
+}
+.special-copy {
+  padding: 65px 12%;
+}
+.special-copy > .eyebrow {
+  color: #d3b77c;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.special-copy h2 {
+  font-size: clamp(36px, 3.5vw, 52px);
+  margin: 22px 0;
+}
+.special-copy p {
+  color: #c8d1e3;
+  line-height: 1.9;
+  margin-bottom: 28px;
+}
+.special-photo {
+  position: relative;
+  min-height: 450px;
+}
+.sample-badge {
+  display: inline-block;
+  font: 10px var(--sans);
+  color: #72531f;
+  background: #fff3d6;
+  border: 1px solid #ddcda9;
+  padding: 4px 8px;
+  border-radius: 3px;
+  margin: 8px 0;
+  letter-spacing: 0.2px;
+}
+.occasion-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+}
+.occasion-card {
+  position: relative;
+  min-height: 410px;
+  border-radius: 6px;
+  overflow: hidden;
+  color: white;
+}
+.occasion-card:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, #071632f2, transparent 95%);
+}
+.occasion-card > div {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 35px;
+  z-index: 1;
+}
+.occasion-card h3 {
+  font: 35px var(--serif);
+  margin: 12px 0 20px;
+}
+.occasion-card .eyebrow {
+  color: #f3d6a0;
+  display: block;
+}
+.occasion-card > div > span:last-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.occasion-card img {
+  transition: transform 0.5s;
+}
+.occasion-card:hover img {
+  transform: scale(1.04);
+}
+.royal-journal {
+  padding-bottom: 100px;
+}
+.editorial-card-image {
+  display: block;
+  position: relative;
+  aspect-ratio: 1.4;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.editorial-card > .eyebrow {
+  display: block;
+  color: var(--gold);
+}
+.editorial-card h3 {
+  font: 29px var(--serif);
+  margin: 13px 0;
+}
+.editorial-card p {
+  font-size: 13px;
+  line-height: 1.85;
+  margin-bottom: 18px;
+}
+.royal-visit {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  padding: 90px 5.5% 105px;
+  background: radial-gradient(ellipse at 50% 100%, #244983, #0b2046);
+  color: #fff;
+}
+.royal-visit > svg {
+  color: #e4c58c;
+  margin-bottom: 20px;
+}
+.royal-visit > .eyebrow {
+  display: block;
+  color: #e3c58e;
+}
+.royal-visit h2 {
+  font-size: clamp(38px, 4.2vw, 65px);
+  margin: 20px 0;
+  position: relative;
+  z-index: 1;
+  line-height: 1.2;
+}
+.royal-visit em {
+  color: #e4c58c;
+}
+.royal-visit p {
+  color: #ced7e9;
+  position: relative;
+  z-index: 1;
+}
+.royal-visit .button-row {
+  justify-content: center;
+  gap: 28px;
+  margin-top: 30px;
+  position: relative;
+  z-index: 1;
+}
+.visit-wordmark {
+  position: absolute;
+  bottom: -150px;
+  left: 50%;
+  transform: translateX(-50%);
+  font:
+    400px Georgia,
+    serif;
+  letter-spacing: 20px;
+  color: #ffffff04;
+  pointer-events: none;
+}
+.footer {
+  background: #081932;
+}
+.footer .brand {
+  color: #f3dfb5;
+}
+.footer p,
+.footer a {
+  color: #c4cddd;
+}
+.intro {
+  position: relative;
+  background: radial-gradient(ellipse at 90% 20%, #e4eaf4, #f6f4ee 70%);
+  border-bottom: 1px solid #d8c7a260;
+}
+.intro h1 {
+  color: var(--navy);
+}
+.post-card {
+  padding: 0 0 25px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  overflow: hidden;
+  background: white;
+}
+.post-card h3,
+.post-card p,
+.post-card > .underlined,
+.post-card > .sample-badge {
+  margin-left: 24px;
+  margin-right: 24px;
+}
+.post-card h3 {
+  font: 29px var(--serif);
+  margin-top: 18px;
+}
+.post-card p {
+  max-height: 125px;
+  overflow: hidden;
+  line-height: 1.8;
+  margin-top: 15px;
+}
+.post-card img {
+  aspect-ratio: 1.4;
+  object-fit: cover;
+  width: 100%;
+}
+.gallery-grid > div {
+  border-radius: 6px;
+}
+.archive-flyers {
+  padding-top: 35px;
+  padding-bottom: 80px;
+}
+.archive-flyers > p {
+  margin: 14px 0 30px;
+  max-width: 650px;
+}
+.flyer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+}
+.flyer-grid figure {
+  margin: 0;
+}
+.flyer-grid img {
+  width: 100%;
+  height: auto;
+  border-radius: 5px;
+}
+.flyer-grid figcaption {
+  font-size: 12px;
+  color: var(--muted);
+  padding-top: 12px;
+}
+.chef-host {
+  width: 82px;
+  height: 92px;
+  position: fixed;
+  right: 18px;
+  bottom: 24px;
+  z-index: 38;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  pointer-events: none;
+}
+.chef-launcher {
+  width: 82px;
+  height: 92px;
+  padding: 0;
+  background: none;
+  border: 0;
+  filter: drop-shadow(0 5px 10px #0003);
+  pointer-events: auto;
+}
+.chef-portrait {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.chef-bubble {
+  pointer-events: auto;
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  width: 290px;
+  margin-bottom: 9px;
+  padding: 25px;
+  background: #fffdf6;
+  border: 1px solid #d3b47b;
+  border-radius: 12px 12px 0 12px;
+  box-shadow: 0 10px 45px #091c4030;
+}
+.chef-bubble h2 {
+  font-size: 25px;
+  letter-spacing: -0.5px;
+  margin: 12px 0;
+}
+.chef-bubble p {
+  font-size: 13px;
+  line-height: 1.75;
+}
+.chef-bubble > a {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 16px;
+  color: var(--navy);
+}
+.chef-close {
+  position: absolute;
+  right: 7px;
+  top: 7px;
+  background: none;
+  border: 0;
+  padding: 6px;
+}
+.welcome-audio {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 13px;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: #75551e;
+  font-size: 11px;
+}
+.chef-arriving .chef-launcher {
+  animation: chef-arrival 2.1s ease-in-out both;
+}
+.staff-guide {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  background: linear-gradient(100deg, #fff9ec, #fffdf8);
+  border: 1px solid #e8d8b8;
+  padding: 24px 28px;
+  border-radius: 10px;
+  margin-bottom: 28px;
+}
+.staff-guide > .chef-portrait {
+  width: 90px;
+  height: 100px;
+  flex-shrink: 0;
+}
+.staff-guide h2 {
+  font-size: 25px;
+  letter-spacing: -0.4px;
+  margin: 5px 0 8px;
+}
+.staff-guide p {
+  font-size: 13px;
+  line-height: 1.7;
+  max-width: 720px;
+}
+.staff-guide button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #72531f;
+}
+.staff-guide ol {
+  padding-left: 20px;
+  line-height: 2;
+  font-size: 13px;
+  margin-bottom: 0;
+}
+.admin-shell {
+  background: #f3f5f9;
+}
+.admin-sidebar {
+  background: linear-gradient(170deg, #0b214b, #102e62);
+  border: 0;
+  padding: 28px 18px;
+  color: #ced8ec;
+}
+.admin-sidebar .brand {
+  color: #ecd3a1;
+  padding: 0 12px;
+  margin-bottom: 32px;
+}
+.admin-sidebar nav button {
+  border-radius: 7px;
+  color: #c9d6eb;
+  padding: 11px 14px;
+  margin-bottom: 3px;
+  font-size: 12px;
+}
+.admin-sidebar nav button.active {
+  background: #e6cc97;
+  color: #0b214b;
+}
+.admin-sidebar nav button:hover {
+  background: #ffffff12;
+}
+.admin-sidebar nav button.active:hover {
+  background: #f0d7a7;
+}
+.admin-nav-group {
+  color: #99afd2;
+  display: block;
+  letter-spacing: 1.8px;
+  font-size: 9px;
+  margin: 22px 14px 8px;
+}
+.admin-top h1 {
+  font-size: 34px;
+}
+.admin-top p {
+  font-size: 12px;
+}
+.admin-main {
+  padding: 36px 4%;
+  max-width: 1600px;
+}
+.admin-panel,
+.stat-card {
+  border-radius: 10px;
+  border: 1px solid #e2e6ee;
+  box-shadow: 0 4px 20px #0c214603;
+}
+.admin-panel h2 {
+  font-size: 23px;
+  letter-spacing: -0.5px;
+}
+.admin-panel p {
+  line-height: 1.8;
+}
+.stats-grid {
+  gap: 16px;
+}
+.stat-card {
+  border-top: 3px solid #c8a66c;
+}
+.stat-card strong {
+  font-family: var(--serif);
+  color: var(--navy);
+  font-size: 40px;
+}
+.admin-list {
+  background: white;
+  border: 1px solid #e1e6ef;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.admin-row {
+  padding: 18px 22px;
+}
+.admin-row img {
+  border-radius: 7px;
+  width: 68px;
+  height: 68px;
+  object-fit: cover;
+}
+.admin-row .row-copy strong {
+  font-size: 15px;
+}
+.admin-row .row-copy p {
+  font-size: 12px;
+}
+.admin-filter {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.admin-filter input,
+.admin-filter select {
+  border: 1px solid #d9dfe9;
+  padding: 12px 15px;
+  border-radius: 7px;
+  background: white;
+  min-height: 45px;
+}
+.admin-filter input {
+  flex: 1;
+  min-width: 160px;
+}
+.admin-filter span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 25px;
+}
+.quick-action {
+  border: 1px solid #e1e5ec;
+  border-radius: 9px;
+  padding: 23px;
+  text-align: left;
+  background: white;
+  display: flex;
+  gap: 13px;
+  align-items: center;
+}
+.quick-action svg {
+  color: #9f7938;
+}
+.quick-action strong {
+  display: block;
+  font-size: 14px;
+}
+.quick-action small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.quick-action:hover {
+  border-color: #bea16c;
+  background: #fffdf8;
+}
+.admin-login {
+  background:
+    linear-gradient(115deg, #081b3ded, #183e7fe0),
+    url("/images/banga-detail.webp") center/cover;
+  min-height: 100vh;
+}
+.login-card {
+  border-radius: 12px;
+  border: 1px solid #dcc799;
+  box-shadow: 0 30px 90px #0003;
+  padding: 45px;
+  background: #fffdf7;
+}
+.login-card h1 {
+  font-size: 35px;
+  line-height: 1.2;
+}
+.login-card > .chef-portrait {
+  width: 85px;
+  height: 95px;
+  margin: 0 auto 20px;
+}
+.admin-media {
+  border: 1px solid #e0e5ed;
+  border-radius: 9px;
+  overflow: hidden;
+  background: #fff;
+  padding-bottom: 18px;
+}
+.admin-media img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+.admin-media p {
+  padding: 0 15px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.admin-media button {
+  margin: 12px 15px 0;
+}
+.danger-button {
+  border: 1px solid #e6c9c4;
+  color: #a03428;
+  background: #fff7f5;
+  padding: 8px 12px;
+  border-radius: 5px;
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  font-size: 12px;
+}
+.media-upload {
+  border: 2px dashed #ccd5e4;
+  padding: 30px;
+  text-align: center;
+  border-radius: 10px;
+  background: white;
+  margin-bottom: 28px;
+}
+.media-upload h2 {
+  font-size: 25px;
+  margin-bottom: 8px;
+}
+.media-upload p {
+  margin-bottom: 20px;
+}
+.editor-dialog {
+  border-radius: 12px;
+}
+.editor-header {
+  background: #f5f1e7;
+}
+.editor-dialog .form {
+  gap: 22px;
+}
+.editor-preview {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 7px;
+}
+.editor-dialog label {
+  font-size: 13px;
+}
+.editor-dialog .form-note {
+  padding: 12px;
+  background: #f1f4f9;
+  border-radius: 6px;
+}
+.sample-admin-note {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 24px;
+  padding: 15px 20px;
+  background: #fff4d9;
+  border: 1px solid #e6d0a5;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #70531f;
+}
+.sample-admin-note button {
+  white-space: nowrap;
+}
+.admin-mobile-select {
+  display: none;
+}
+@keyframes chef-arrival {
+  0% {
+    transform: translate(-35vw, -28vh) scale(1.6);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+    transform: translate(-33vw, -32vh) rotate(-8deg) scale(1.4);
+  }
+  60% {
+    transform: translate(-18vw, -18vh) rotate(10deg) scale(1.2);
+  }
+  100% {
+    transform: translate(0) rotate(0) scale(1);
+  }
+}
+@media (min-width: 1600px) {
+  .royal-hero {
+    padding-left: calc((100vw - 1440px) / 2 + 80px);
+    padding-right: calc((100vw - 1440px) / 2 + 80px);
+  }
+}
+@media (max-width: 1050px) {
+  .royal-hero {
+    padding-top: 50px;
+    min-height: 620px;
+  }
+  .royal-hero h1 {
+    font-size: 52px;
+  }
+  .royal-hero-art {
+    min-height: 470px;
+  }
+  .royal-seal {
+    width: 90px;
+    height: 90px;
+    font-size: 12px;
+  }
+  .royal-ribbon > span {
+    font-size: 18px;
+    gap: 20px;
+  }
+  .royal-story {
+    gap: 5%;
+  }
+  .story-photo-stack {
+    height: 450px;
+  }
+  .story-handwritten {
+    right: -4%;
+    font-size: 22px;
+  }
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+  .admin-main {
+    padding: 25px;
+  }
+  .royal-special {
+    margin-top: 65px;
+    margin-bottom: 65px;
+  }
+  .special-copy {
+    padding: 45px 10%;
+  }
+  .chef-host {
+    right: 12px;
+  }
+  .occasion-card {
+    min-height: 350px;
+  }
+}
+@media (max-width: 700px) {
+  .site-header {
+    height: 78px;
+  }
+  .announcement {
+    font-size: 9px;
+  }
+  .royal-hero {
+    grid-template-columns: 1fr;
+    padding: 38px 6% 25px;
+    gap: 10px;
+    min-height: 0;
+  }
+  .royal-hero:before {
+    inset: 11px;
+  }
+  .royal-hero-copy {
+    padding: 0 0 15px;
+  }
+  .royal-hero .eyebrow {
+    font-size: 8px;
+    letter-spacing: 1.3px;
+  }
+  .royal-hero h1 {
+    font-size: clamp(39px, 10vw, 62px);
+    letter-spacing: -1.7px;
+    line-height: 1.16;
+    margin: 22px 0 20px;
+  }
+  .royal-hero-copy > p {
+    font-size: 13px;
+    max-width: 400px;
+  }
+  .royal-hero .hero-buttons {
+    gap: 18px;
+    margin-top: 25px;
+    flex-wrap: wrap;
+  }
+  .royal-hero .button {
+    font-size: 12px;
+    padding: 13px 18px;
+  }
+  .royal-text-link {
+    font-size: 12px;
+  }
+  .hero-signature {
+    margin-top: 23px;
+    font-size: 8px;
+    letter-spacing: 0.8px;
+  }
+  .royal-hero-art {
+    height: 440px;
+    min-height: 0;
+    margin: 10px 7% 28px 0;
+  }
+  .royal-main-photo {
+    height: 91%;
+    top: 1%;
+    left: 12%;
+  }
+  .royal-side-photo {
+    height: 44%;
+    bottom: -2%;
+    width: 42%;
+  }
+  .royal-seal {
+    right: -7%;
+    top: 0;
+    width: 83px;
+    height: 83px;
+    font-size: 11px;
+  }
+  .royal-seal svg {
+    width: 18px;
+  }
+  .art-caption {
+    font-size: 12px;
+    right: -3%;
+    bottom: -25px;
+  }
+  .hero-bottom {
+    margin-top: 10px;
+    padding-top: 15px;
+    font-size: 8px;
+    letter-spacing: 0.4px;
+    gap: 15px;
+  }
+  .hero-bottom > a {
+    max-width: 125px;
+    text-align: right;
+  }
+  .royal-ribbon {
+    padding: 20px 6%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .royal-ribbon > span {
+    font-size: 17px;
+    gap: 10px;
+  }
+  .royal-ribbon i {
+    font-size: 12px;
+  }
+  .royal-favourites {
+    padding-top: 55px;
+    padding-bottom: 35px;
+  }
+  .section-heading > div:last-child > p {
+    margin-top: 20px;
+    font-size: 13px;
+  }
+  .meal-grid {
+    gap: 25px;
+  }
+  .meal-photo {
+    aspect-ratio: 1.18;
+  }
+  .royal-story {
+    grid-template-columns: 1fr;
+    gap: 42px;
+    padding-top: 25px;
+    padding-bottom: 55px;
+  }
+  .story-photo-stack {
+    height: 440px;
+    margin-right: 10px;
+  }
+  .story-handwritten {
+    right: -4%;
+    top: 8%;
+    font-size: 22px;
+  }
+  .royal-story-copy h2 {
+    font-size: 36px;
+  }
+  .royal-story-copy p {
+    font-size: 13px;
+  }
+  .story-values {
+    margin-top: 25px;
+  }
+  .kitchen-film {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-top: 45px;
+    padding-bottom: 45px;
+  }
+  .film-copy {
+    padding-left: 0;
+  }
+  .film-copy h2 {
+    font-size: 43px;
+  }
+  .film-copy p {
+    font-size: 13px;
+  }
+  .film-length {
+    margin-top: 17px;
+  }
+  .film-frame {
+    aspect-ratio: 1.25;
+  }
+  .film-label {
+    font-size: 20px;
+    left: 20px;
+    bottom: 20px;
+  }
+  .royal-special {
+    grid-template-columns: 1fr;
+    margin: 45px 5.5%;
+    border-radius: 6px;
+  }
+  .special-copy {
+    padding: 35px 25px;
+  }
+  .special-copy h2 {
+    font-size: 35px;
+  }
+  .special-copy p {
+    font-size: 13px;
+  }
+  .special-photo {
+    min-height: 330px;
+    grid-row: 1;
+  }
+  .occasion-grid {
+    grid-template-columns: 1fr;
+  }
+  .occasion-card {
+    min-height: 350px;
+  }
+  .occasion-card > div {
+    padding: 25px;
+  }
+  .occasion-card h3 {
+    font-size: 31px;
+  }
+  .royal-journal {
+    padding-bottom: 55px;
+  }
+  .editorial-card {
+    margin-bottom: 10px;
+  }
+  .editorial-card-image {
+    margin-bottom: 20px;
+  }
+  .royal-visit {
+    padding: 55px 6% 70px;
+  }
+  .royal-visit h2 {
+    font-size: 36px;
+  }
+  .royal-visit p {
+    font-size: 13px;
+  }
+  .royal-visit .button-row {
+    gap: 15px;
+  }
+  .chef-host {
+    bottom: 73px;
+    right: 9px;
+    width: 61px;
+    height: 69px;
+  }
+  .chef-launcher {
+    width: 61px;
+    height: 69px;
+  }
+  .chef-bubble {
+    width: min(280px, 85vw);
+    padding: 22px;
+  }
+  .chef-bubble h2 {
+    font-size: 23px;
+  }
+  .staff-guide {
+    padding: 18px 15px;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .staff-guide > .chef-portrait {
+    width: 55px;
+    height: 65px;
+  }
+  .staff-guide h2 {
+    font-size: 21px;
+  }
+  .staff-guide .eyebrow {
+    font-size: 8px;
+  }
+  .staff-guide p {
+    font-size: 12px;
+  }
+  .admin-shell {
+    display: block;
+  }
+  .admin-sidebar {
+    display: none;
+  }
+  .admin-main {
+    padding: 20px 15px;
+  }
+  .admin-mobile-select {
+    display: block;
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #ccd5e2;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    background: white;
+    font: inherit;
+  }
+  .admin-top h1 {
+    font-size: 30px;
+  }
+  .admin-top .eyebrow {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .admin-row {
+    padding: 15px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .admin-row .row-copy {
+    min-width: 130px;
+  }
+  .admin-row img {
+    width: 52px;
+    height: 52px;
+  }
+  .admin-filter input {
+    width: 100%;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .stat-card {
+    padding: 18px 13px;
+  }
+  .stat-card strong {
+    font-size: 32px;
+  }
+  .stat-card span {
+    font-size: 10px;
+  }
+  .sample-admin-note {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .admin-login {
+    padding: 30px 15px;
+  }
+  .login-card {
+    padding: 30px 24px;
+  }
+  .login-card h1 {
+    font-size: 30px;
+  }
+  .flyer-grid {
+    grid-template-columns: 1fr;
+  }
+  .flyer-grid figure {
+    max-width: 450px;
+    margin: auto;
+  }
+  .editorial-card h3 {
+    font-size: 28px;
+  }
+  .quick-actions {
+    gap: 10px;
+  }
+  .quick-action {
+    padding: 18px;
+  }
+  .admin-filter select {
+    max-width: 100%;
+  }
+}
+@media (max-width: 360px) {
+  .royal-hero-art {
+    height: 355px;
+  }
+  .royal-hero h1 {
+    font-size: 36px;
+  }
+  .story-photo-stack {
+    height: 355px;
+  }
+  .royal-ribbon > span {
+    font-size: 15px;
+  }
+  .royal-seal {
+    width: 72px;
+    height: 72px;
+  }
+  .royal-seal svg {
+    height: 16px;
+  }
+  .hero-signature {
+    font-size: 7px;
+  }
+  .chef-bubble {
+    width: 250px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *:before,
+  *:after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .chef-arriving .chef-launcher {
+    transform: none;
+  }
+}
+
+/* Defer offscreen layout without hiding content from visitors or crawlers. */
+.home-content > section:not(.royal-hero) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 700px;
+}

@@ -1,0 +1,47 @@
+{
+  "name": "nvo-restaurant",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node server.mjs --dev",
+    "build": "next build",
+    "start": "node server.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "setup": "node scripts/setup.mjs",
+    "setup:translation": "node scripts/translation-worker.mjs --setup",
+    "menu:import": "node --env-file-if-exists=.env.local --import tsx scripts/import-menu.ts",
+    "showcase": "tsx scripts/showcase.ts",
+    "test:browser": "node tests/browser.mjs",
+    "test:design": "node tests/design.mjs",
+    "social:worker": "node --env-file=.env.local --import tsx scripts/social-worker.ts",
+    "setup:social": "node scripts/setup-social.mjs",
+    "test:social-browser": "node tests/social-browser.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.0",
+    "lucide-react": "^0.577.0",
+    "next": "^16.2.0",
+    "onnxruntime-web": "^1.26.0",
+    "qrcode": "^1.5.4",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "sharp": "^0.35.4",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.58.0",
+    "@types/node": "^24.0.0",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "lighthouse": "^13.5.0",
+    "prettier": "^3.9.9",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.0"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

@@ -1,0 +1,1928 @@
+NVO RESTAURANT
+
+WEBSITE + CUSTOMER GROWTH + CONTENT ADMINISTRATION SYSTEM
+
+PRODUCT OBJECTIVE
+
+Build a premium, modern, highly responsive restaurant website and customer-growth platform for NVO Restaurant.
+
+This must NOT be treated as a simple restaurant brochure website.
+
+The system should have three major purposes:
+
+1. Attract new customers
+2. Convert visitors into customers
+3. Help NVO continuously publish content, promotions and events while tracking customer activity
+
+The website must be visually impressive enough to represent a premium restaurant while also functioning as a practical business system.
+
+The final product should feel like a professionally designed restaurant brand combined with a lightweight customer-acquisition platform.
+
+---
+
+1. BRAND DIRECTION
+
+Primary Colors
+
+NVO's official website color direction:
+
+* Blue
+* White
+* Gold
+
+Use these colors elegantly rather than simply filling the entire website with blue.
+
+Suggested visual hierarchy:
+
+* Deep/premium blue → primary background, navigation, major sections
+* White → main content/backgrounds/readability
+* Gold → premium accents, buttons, highlights, borders, icons and important calls-to-action
+
+Gold should be used strategically so that it feels premium rather than excessive.
+
+The overall feeling should be:
+
+Premium + Modern + Elegant + Welcoming + Appetizing + Trustworthy
+
+Avoid making the website look like a generic restaurant template.
+
+---
+
+2. RESPONSIVENESS
+
+The website MUST be fully responsive.
+
+Design and test for:
+
+* Mobile phones
+* Small Android phones
+* Large Android phones
+* iPhones
+* Tablets
+* Laptops
+* Desktop monitors
+* Large screens
+
+Mobile should not simply be a compressed desktop version.
+
+The mobile experience should be deliberately designed.
+
+Important mobile considerations:
+
+* Sticky mobile navigation where appropriate
+* Large tap targets
+* Easy-to-use menu
+* Easy cart interaction
+* WhatsApp ordering
+* Fast loading
+* Readable typography
+* Optimized images
+* Proper spacing
+* No horizontal scrolling
+* Responsive animations
+* Accessible buttons
+
+---
+
+3. VISUAL DESIGN
+
+The website should be highly visual.
+
+Use:
+
+* High-quality food photography
+* Large hero sections
+* Beautiful typography
+* Premium cards
+* Subtle gradients
+* Elegant gold accents
+* Smooth transitions
+* Hover effects
+* Scroll animations
+* Image reveal animations
+* Micro-interactions
+* Animated counters where appropriate
+* Smooth section transitions
+* Cart animations
+* Button feedback
+* Loading states
+* Skeleton states where useful
+
+Do NOT over-animate the website.
+
+Animations should improve the experience rather than slow it down.
+
+Respect "prefers-reduced-motion".
+
+The site should still feel excellent when animations are disabled.
+
+---
+
+4. WEBSITE STRUCTURE
+
+Create the following major pages/sections.
+
+HOME
+
+The homepage should immediately communicate:
+
+* What NVO is
+* What makes NVO attractive
+* What food is available
+* How to order
+* Where NVO is located
+* Current promotions/events
+* Social proof
+* Strong calls-to-action
+
+Suggested homepage structure:
+
+HERO
+
+Large visual hero.
+
+Headline example:
+
+A Taste Worth Coming Back For.
+
+Supporting text.
+
+Primary CTA:
+
+ORDER NOW
+
+Secondary CTA:
+
+EXPLORE MENU
+
+Additional CTA:
+
+GET DIRECTIONS
+
+Use premium food imagery.
+
+---
+
+FEATURED MEALS
+
+Display selected meals managed from the admin dashboard.
+
+Each meal should contain:
+
+* Image
+* Name
+* Description
+* Price
+* Category
+* Availability
+* Optional discount
+* Add to cart button
+
+Admin should control which meals appear in Featured Meals.
+
+---
+
+5. MENU SYSTEM
+
+Create a complete digital menu.
+
+Categories should be manageable from the admin dashboard.
+
+Examples:
+
+* Main Meals
+* Rice
+* Chicken
+* Snacks
+* Drinks
+* Desserts
+* Specials
+
+Do NOT hard-code categories permanently.
+
+Admin should be able to:
+
+* Create category
+* Rename category
+* Delete category
+* Reorder category
+* Hide category
+
+Each menu item should support:
+
+* Name
+* Description
+* Price
+* Image
+* Category
+* Availability
+* Featured status
+* Discount
+* Optional badge
+* Optional ingredients
+* Optional preparation information
+* Sort order
+
+Examples of badges:
+
+* NEW
+* POPULAR
+* CHEF'S CHOICE
+* LIMITED
+* SPECIAL
+
+---
+
+6. SHOPPING CART / ORDER SYSTEM
+
+This is a critical feature.
+
+Customers must be able to add meals to a cart.
+
+Cart should show:
+
+* Product
+* Quantity
+* Unit price
+* Discount if applicable
+* Subtotal
+* Coupon discount
+* Total
+
+Customer can:
+
+* Increase quantity
+* Decrease quantity
+* Remove item
+* Clear cart
+
+Cart must work properly on mobile.
+
+Use persistent client-side cart state so the cart does not disappear unnecessarily when navigating between pages.
+
+---
+
+7. WHATSAPP ORDER FLOW
+
+NVO will handle the actual customer service/order completion through WhatsApp.
+
+Therefore:
+
+CUSTOMER JOURNEY
+
+Customer:
+
+1. Opens NVO website
+2. Browses menu
+3. Selects meals
+4. Adds meals to cart
+5. Opens cart
+6. Reviews order
+7. Applies coupon if applicable
+8. Clicks:
+
+CONFIRM ORDER ON WHATSAPP
+
+The system should generate a pre-filled WhatsApp message.
+
+Example:
+
+"Hello NVO Restaurant 👋
+
+I would like to place an order.
+
+Order:
+
+* 2x Jollof Rice — ₦X
+* 1x Chicken — ₦X
+* 2x Coke — ₦X
+
+Subtotal: ₦X
+Discount: ₦X
+Total: ₦X
+
+Coupon: NVO-XXXX
+
+Please confirm my order.
+
+Thank you."
+
+The WhatsApp number must be configurable from the admin dashboard.
+
+Do not hard-code the number.
+
+The customer should only need to press Send after WhatsApp opens.
+
+---
+
+8. RESERVATION SYSTEM
+
+Provide a reservation/contact flow.
+
+Customer should be able to request:
+
+* Name
+* Phone number
+* Date
+* Time
+* Number of people
+* Optional message
+
+The final action can open WhatsApp with a pre-filled reservation request.
+
+Example:
+
+"Hello NVO Restaurant,
+
+I would like to make a reservation.
+
+Name:
+Date:
+Time:
+Guests:
+
+Additional request:
+
+Thank you."
+
+---
+
+9. PROMOTIONS SYSTEM
+
+Admin must be able to create promotions without developers.
+
+Promotion fields:
+
+* Title
+* Description
+* Image
+* Discount percentage
+* Fixed discount
+* Start date
+* End date
+* Start time
+* End time
+* Applicable products
+* Coupon code
+* Usage limit
+* Status
+* Featured status
+
+Examples:
+
+* Friday Special
+* Weekend Offer
+* End-of-Month Special
+* Valentine's Event
+* Christmas Offer
+* New Menu Launch
+* Birthday Promotion
+
+Expired promotions should automatically become inactive.
+
+---
+
+10. COUPON SYSTEM
+
+Admin can create coupons.
+
+Coupon fields:
+
+* Coupon code
+* Discount type
+* Discount percentage
+* Fixed amount
+* Minimum order
+* Maximum discount
+* Start date
+* Expiration date
+* Maximum usage
+* Per-customer usage
+* Applicable products/categories
+* Active/inactive
+
+The system must validate coupons before applying them.
+
+---
+
+11. REFERRAL SYSTEM
+
+This is a major feature.
+
+NVO customers should be able to refer friends.
+
+CUSTOMER REFERRAL FLOW
+
+Customer visits:
+
+Refer a Friend
+
+The website generates a unique referral link.
+
+Example:
+
+"nvo.com/r/ABC123"
+
+The customer can:
+
+* Copy link
+* Share to WhatsApp
+* Share through available device sharing
+* Copy referral code
+
+When another person opens the referral link:
+
+The system records the referral.
+
+The referred person should receive an available referral offer/coupon according to the rules configured by NVO.
+
+---
+
+12. REFERRAL COUPON EXPIRATION
+
+NVO specifically wants the referral opportunity to be time-sensitive.
+
+Example:
+
+Customer shares link.
+
+Friend opens it.
+
+A countdown begins:
+
+Your referral offer expires in 05:00
+
+During the valid period, the referred visitor can claim the offer.
+
+The system should generate a unique coupon/token for the referred visitor.
+
+Example:
+
+"NVO-7K29X"
+
+The user should be able to:
+
+* Save coupon
+* Copy coupon
+* Download/save coupon as an image or digital card
+* Use it later according to NVO's configured rules
+
+IMPORTANT:
+
+The five-minute timer should control claiming/activating the referral offer, unless NVO specifically configures the actual coupon expiration differently.
+
+Do not automatically assume that the coupon itself must expire five minutes after generation.
+
+Admin should be able to configure:
+
+* Referral link claim window
+* Coupon validity
+* Discount percentage
+* Minimum order
+* Usage limit
+
+---
+
+13. REFERRAL TRACKING
+
+Admin dashboard should show:
+
+* Referral links created
+* Referral clicks
+* Referral claims
+* Coupons generated
+* Coupons redeemed
+* Successful referred orders
+* Referral conversion rate
+
+Example:
+
+Referral Performance
+
+Links created:       247
+Clicks:              183
+Claims:              119
+Redemptions:          61
+Conversions:          33.3%
+
+Do not claim that a referral resulted in an actual sale unless the system has a reliable event confirming it.
+
+---
+
+14. CUSTOMER CONTENT / POSTS SYSTEM
+
+NVO staff should be able to publish content from the admin dashboard.
+
+Post types:
+
+* Announcement
+* Promotion
+* Event
+* New Meal
+* Restaurant Update
+* Special Offer
+* Holiday
+* Weekend Special
+* Customer Appreciation
+* Loyalty Announcement
+* Winner Announcement
+
+Post fields:
+
+* Title
+* Content
+* Featured image
+* Gallery
+* Category
+* Publish date
+* Expiration date
+* CTA
+* CTA URL
+* Status
+* Social publishing status
+
+---
+
+15. ONE POST → MULTIPLE CHANNELS
+
+This is a MUST-HAVE feature.
+
+NVO should be able to create one post from the admin dashboard.
+
+The system then prepares channel-specific versions.
+
+Example:
+
+Original content
+
+"Friday Night Special"
+
+The system generates:
+
+Website version
+
+Full post.
+
+Instagram version
+
+Short engaging caption.
+
+Facebook version
+
+Slightly longer caption.
+
+Other connected channels
+
+Generate appropriate versions according to each platform's requirements.
+
+The system should support integrations with platforms that provide authorized publishing APIs.
+
+DO NOT fake social publishing.
+
+Where an API requires authentication, provide a secure connection flow.
+
+Admin should see:
+
+Publishing
+
+Website       ✓ Published
+Instagram     ✓ Published
+Facebook      ✓ Published
+Other         ○ Not Connected
+
+If a platform fails:
+
+Instagram     ✕ Failed
+
+Reason:
+Authentication expired.
+
+[Reconnect]
+
+---
+
+16. SOCIAL MEDIA ACCOUNT CONNECTION
+
+Admin should be able to connect authorized business social accounts.
+
+Never store social passwords directly.
+
+Use the official OAuth/API authorization mechanisms of each platform.
+
+Admin can:
+
+* Connect account
+* Disconnect account
+* Reauthorize
+* View connection status
+
+Tokens/secrets must be stored securely on the server.
+
+---
+
+17. AI CONTENT ASSISTANT
+
+The admin dashboard should include an AI content assistant.
+
+Admin can enter:
+
+"Friday special: grilled chicken and jollof rice, 20% off."
+
+AI can generate:
+
+* Website headline
+* Website description
+* Instagram caption
+* Facebook caption
+* WhatsApp message
+* Short promotional copy
+* CTA
+* Suggested hashtags where appropriate
+
+Admin MUST be able to edit AI-generated content before publishing.
+
+AI must never automatically publish sensitive or unexpected content without admin approval unless the admin explicitly enables an automated workflow.
+
+---
+
+18. EVENTS SYSTEM
+
+NVO frequently has events.
+
+Create a complete event system.
+
+Admin can create:
+
+* Event title
+* Date
+* Time
+* Description
+* Image
+* Location
+* Ticket/booking information if applicable
+* CTA
+* Expiration date
+
+Events should appear on:
+
+* Homepage
+* Events page
+* Relevant promotional sections
+* Social publishing queue
+
+Upcoming events should be automatically prioritized.
+
+Past events should automatically move to an archive unless the admin chooses otherwise.
+
+---
+
+19. LOYAL CUSTOMER / TOP 3 SYSTEM
+
+NVO has a tradition of recognizing its top three loyal customers.
+
+Create a dedicated feature.
+
+Admin can publish:
+
+TOP 3 LOYAL CUSTOMERS
+
+1. Customer of the Month
+2. Second Place
+3. Third Place
+
+Admin controls:
+
+* Name
+* Photo/avatar
+* Description
+* Month
+* Year
+* Position
+* Achievement/message
+
+Example:
+
+NVO TOP 3 — SEPTEMBER
+
+🥇 Customer Name
+🥈 Customer Name
+🥉 Customer Name
+
+This should look premium and celebratory.
+
+Use animations carefully.
+
+---
+
+20. CUSTOMER STORIES / TESTIMONIALS
+
+Admin should be able to publish testimonials.
+
+Fields:
+
+* Customer name
+* Profile image
+* Testimonial
+* Rating
+* Date
+* Featured status
+
+Display testimonials attractively.
+
+Do not fabricate testimonials.
+
+---
+
+21. CUSTOMER ACQUISITION SYSTEM
+
+This is the most important strategic component.
+
+The website must be designed around:
+
+DISCOVERY → VISIT → ACTION → CUSTOMER → RETURN → REFERRAL
+
+The system should track meaningful customer actions.
+
+Track events such as:
+
+* Page view
+* Menu view
+* Product view
+* Add to cart
+* Remove from cart
+* Checkout started
+* WhatsApp order clicked
+* Reservation clicked
+* Phone clicked
+* Directions clicked
+* Coupon viewed
+* Coupon claimed
+* Referral link opened
+* Referral shared
+* Referral coupon redeemed
+* Promotion viewed
+* CTA clicked
+
+Do NOT count meaningless events as customers.
+
+---
+
+22. WEBSITE ANALYTICS
+
+Create an analytics dashboard.
+
+Admin should see:
+
+Traffic
+
+* Visitors
+* Sessions
+* Page views
+* New visitors
+* Returning visitors
+
+Acquisition
+
+* Google
+* Social
+* WhatsApp
+* Referral
+* Direct
+* Other tracked sources
+
+Engagement
+
+* Menu views
+* Product views
+* Promotions viewed
+* Event views
+
+Conversion actions
+
+* WhatsApp order clicks
+* Reservation requests
+* Phone clicks
+* Direction clicks
+* Cart additions
+* Coupon claims
+
+Referral
+
+* Referral visitors
+* Referral claims
+* Coupon redemption
+
+Use charts where useful.
+
+---
+
+23. UTM / CAMPAIGN TRACKING
+
+Campaign links should support tracking.
+
+For example:
+
+"?utm_source=instagram&utm_campaign=friday_special"
+
+The system should remember campaign attribution during the visitor session where technically appropriate.
+
+Admin can then see:
+
+Friday Special
+
+Visitors:          418
+Menu views:        271
+Order clicks:       54
+Reservations:       17
+Coupon claims:      31
+
+This allows NVO to understand what actually produces customer actions.
+
+---
+
+24. CUSTOMER ACQUISITION WITHOUT CONSTANT MANUAL PROMOTION
+
+The platform should be designed around evergreen discovery.
+
+Implement the technical foundation for:
+
+* Search-engine optimization
+* Google Business Profile linking
+* Restaurant structured data
+* Menu structured information
+* Location information
+* Opening hours
+* Social sharing metadata
+* Open Graph metadata
+* Search-friendly URLs
+* Sitemap
+* Robots configuration
+* Fast page performance
+* Image optimization
+
+The goal is to help people discover NVO when they are already looking for restaurants/food.
+
+Do not use fake reviews, fake locations, spam pages or misleading SEO techniques.
+
+---
+
+25. DISCOVERY / CONTENT STRATEGY
+
+The CMS should allow NVO to publish useful discoverable content.
+
+Examples:
+
+* New menu announcements
+* Food guides
+* Event pages
+* Restaurant updates
+* Seasonal menus
+* Special dining experiences
+* Group dining information
+* Birthday/event dining
+* Food highlights
+
+Only create pages that contain genuinely useful information.
+
+---
+
+26. ADMIN DASHBOARD
+
+Create a secure "/admin" system.
+
+Admin login must be protected.
+
+Dashboard should include:
+
+Overview
+
+Visitors
+Orders/Order Clicks
+Reservations
+WhatsApp Clicks
+Top Meals
+Top Campaigns
+Referral Performance
+Recent Posts
+Upcoming Events
+
+Quick Actions
+
+* Add Meal
+* Create Promotion
+* Create Post
+* Create Event
+* Create Coupon
+* Publish Loyalty Winners
+* View Analytics
+
+---
+
+27. MEAL MANAGEMENT
+
+Admin can:
+
+* Add meal
+* Edit meal
+* Delete meal
+* Hide meal
+* Feature meal
+* Change price
+* Upload image
+* Add discount
+* Set availability
+* Assign category
+* Reorder meals
+
+Changes should appear on the public website without requiring developer intervention.
+
+---
+
+28. MEDIA LIBRARY
+
+Create a media library.
+
+Admin can upload:
+
+* Food photos
+* Event photos
+* Promotional graphics
+* Customer recognition images
+* Videos where supported
+
+Allow:
+
+* Search
+* Filter
+* Delete
+* Reuse existing media
+
+Optimize uploaded images for web delivery.
+
+---
+
+29. ADMIN ROLES
+
+Prepare the system for multiple staff roles.
+
+Possible roles:
+
+Owner/Admin
+
+Full access.
+
+Manager
+
+Content, meals, promotions, events, analytics.
+
+Content Manager
+
+Posts, media, campaigns.
+
+Customer Service
+
+Orders/reservations/inquiries where applicable.
+
+Analyst
+
+Analytics only.
+
+Use role-based access control.
+
+---
+
+30. NOTIFICATIONS
+
+Admin should receive notifications for important events where possible.
+
+Examples:
+
+* New reservation request
+* New inquiry
+* Referral milestone
+* Campaign publishing failure
+* Social connection failure
+* Coupon redemption
+* Important system error
+
+Do not overwhelm staff with unnecessary notifications.
+
+---
+
+31. PUBLIC WEBSITE PAGES
+
+At minimum create:
+
+* Home
+* Menu
+* Meal/Product detail
+* Promotions
+* Events
+* About NVO
+* Gallery
+* Loyalty / Customer Recognition
+* Testimonials
+* Contact
+* Referral
+* Cart
+* Reservation
+* Posts/News
+* Individual post
+* Individual event
+* Privacy Policy
+* Terms/conditions where required
+
+---
+
+32. NAVIGATION
+
+Desktop navigation should be elegant.
+
+Suggested:
+
+Home | Menu | Promotions | Events | About | Contact
+
+Primary button:
+
+ORDER NOW
+
+Mobile navigation should be simple.
+
+Consider:
+
+Home | Menu | Cart | Order
+
+with a mobile menu for other pages.
+
+---
+
+33. STICKY ORDER CTA
+
+On mobile, consider a persistent bottom action:
+
+ORDER NOW
+
+Do not cover important content.
+
+It should disappear when unnecessary or when the user is already inside the cart/checkout flow.
+
+---
+
+34. SEO FOUNDATION
+
+Every important page should support:
+
+* Custom title
+* Meta description
+* Canonical URL
+* Open Graph image
+* Open Graph title
+* Open Graph description
+* Structured data where applicable
+* Semantic HTML
+* Proper headings
+* Alt text
+* Search-friendly URLs
+
+Generate sitemap automatically.
+
+---
+
+35. PERFORMANCE
+
+This website must be fast.
+
+Implement:
+
+* Lazy loading
+* Responsive images
+* Modern image formats where supported
+* Compression
+* Code splitting where appropriate
+* Minimal unnecessary JavaScript
+* Caching
+* Optimized fonts
+* Proper loading states
+
+Do not sacrifice performance for animations.
+
+---
+
+36. ACCESSIBILITY
+
+Implement:
+
+* Keyboard navigation
+* Visible focus states
+* Proper contrast
+* Alt text
+* Semantic HTML
+* Form labels
+* Accessible buttons
+* Screen-reader-friendly structure
+* Reduced motion support
+
+---
+
+37. SECURITY
+
+Because there is an admin/backend:
+
+Implement:
+
+* Secure authentication
+* Password hashing
+* Session security
+* Role-based authorization
+* Server-side validation
+* Input sanitization
+* Rate limiting where appropriate
+* Secure API endpoints
+* CSRF protection where applicable
+* Secure secret storage
+* No exposed API keys
+* No exposed database credentials
+
+Never put private API keys inside frontend JavaScript.
+
+---
+
+38. DATABASE ARCHITECTURE
+
+Use a proper relational or document database appropriate to the selected stack.
+
+At minimum prepare entities/tables for:
+
+* Admin users
+* Roles
+* Meals
+* Categories
+* Promotions
+* Coupons
+* Coupon redemptions
+* Orders/order attempts
+* Reservations
+* Posts
+* Events
+* Media
+* Testimonials
+* Loyal customers
+* Referral links
+* Referral visits
+* Referral claims
+* Analytics events
+* Campaigns
+* Social connections
+* Publishing jobs
+* Settings
+
+Keep the database architecture extensible.
+
+---
+
+39. ORDER DATA
+
+Because the final order is handled through WhatsApp, the system should distinguish:
+
+Order Started
+
+Customer created cart/checkout.
+
+WhatsApp Order Initiated
+
+Customer clicked the WhatsApp order button.
+
+Confirmed Order
+
+Only record as confirmed if there is a reliable confirmation mechanism.
+
+Do NOT pretend that clicking WhatsApp means the restaurant received a completed order.
+
+---
+
+40. WHATSAPP INTEGRATION
+
+Make WhatsApp configurable.
+
+Admin settings:
+
+* WhatsApp number
+* Default order message
+* Reservation message
+* Customer-service message
+
+Generate properly encoded WhatsApp links.
+
+---
+
+41. REFERRAL LINK SECURITY
+
+Referral links must not allow users to manipulate discounts simply by changing URL parameters.
+
+Referral IDs should be generated securely.
+
+Validate referral claims server-side.
+
+Prevent obvious abuse such as:
+
+* Unlimited self-referrals
+* Repeated coupon generation
+* Manipulated discount values
+* Invalid referral IDs
+
+Where possible, associate claims with a session/device/customer identifier while respecting privacy requirements.
+
+---
+
+42. ADMIN SETTINGS
+
+Create a Settings area.
+
+Settings should include:
+
+Restaurant
+
+* Name
+* Address
+* Phone
+* WhatsApp
+* Email
+* Opening hours
+* Social links
+* Google Maps link
+
+Branding
+
+* Logo
+* Colors
+* Fonts
+* Favicon
+
+Ordering
+
+* WhatsApp number
+* Default order message
+
+Promotions
+
+* Default discount settings
+
+Referral
+
+* Referral discount
+* Claim timer
+* Coupon validity
+
+Social
+
+* Connected platforms
+
+SEO
+
+* Site title
+* Meta description
+* Social preview image
+
+---
+
+43. CONTENT AUTOMATION ARCHITECTURE
+
+Build a publishing pipeline.
+
+ADMIN CREATES CONTENT
+        ↓
+AI ASSISTS WITH COPY
+        ↓
+ADMIN REVIEWS
+        ↓
+PUBLISH
+        ↓
+WEBSITE
+        ↓
+SOCIAL PUBLISHING QUEUE
+        ↓
+AUTHORIZED SOCIAL APIs
+        ↓
+PLATFORM-SPECIFIC POSTS
+
+Each publishing job should have a status:
+
+* Draft
+* Awaiting approval
+* Scheduled
+* Publishing
+* Published
+* Failed
+
+---
+
+44. SCHEDULED CONTENT
+
+Allow admin to schedule:
+
+* Posts
+* Promotions
+* Events
+* Campaigns
+
+Example:
+
+Friday Special:
+
+Publish Thursday 7:00 PM
+
+End:
+
+Sunday 11:59 PM
+
+The system automatically handles the status.
+
+---
+
+45. AUTOMATED EXPIRATION
+
+Promotions should automatically expire.
+
+Events should automatically move to past events.
+
+Coupons should automatically become invalid.
+
+Expired referral offers should become unavailable.
+
+Do not leave expired promotions visibly active.
+
+---
+
+46. CUSTOMER EXPERIENCE
+
+The website should make the customer journey extremely simple.
+
+Ideal flow:
+
+DISCOVER NVO
+     ↓
+LAND ON WEBSITE
+     ↓
+SEE FOOD / OFFER
+     ↓
+VIEW MENU
+     ↓
+ADD TO CART
+     ↓
+APPLY COUPON
+     ↓
+CONFIRM
+     ↓
+WHATSAPP
+     ↓
+NVO CUSTOMER CARE
+
+Alternative:
+
+DISCOVER
+ ↓
+PROMOTION
+ ↓
+ORDER
+
+or:
+
+GOOGLE
+ ↓
+NVO
+ ↓
+DIRECTIONS
+ ↓
+RESTAURANT
+
+or:
+
+CUSTOMER
+ ↓
+REFERRAL LINK
+ ↓
+COUPON
+ ↓
+ORDER
+ ↓
+NEW CUSTOMER
+
+---
+
+47. HOMEPAGE CONVERSION DESIGN
+
+The homepage should NOT simply be a collection of beautiful sections.
+
+Every section should have a purpose.
+
+Possible structure:
+
+1. Hero
+2. Primary CTAs
+3. Featured Meals
+4. Current Promotion
+5. Why NVO
+6. Menu Categories
+7. Upcoming Event
+8. Customer Recognition
+9. Testimonials
+10. Gallery
+11. Location / Directions
+12. Final CTA
+13. Footer
+
+---
+
+48. ANIMATION SYSTEM
+
+Use animation strategically.
+
+Examples:
+
+Hero
+
+Subtle image entrance.
+
+Meals
+
+Fade/slide reveal.
+
+Cards
+
+Gentle hover elevation.
+
+Add to Cart
+
+Micro-animation.
+
+Cart
+
+Smooth item addition/removal.
+
+Referral
+
+Countdown animation.
+
+Top 3 Customers
+
+Elegant reveal.
+
+Statistics
+
+Animated counters.
+
+Navigation
+
+Smooth transitions.
+
+Do not make every element move.
+
+---
+
+49. EMPTY STATES
+
+Design proper empty states.
+
+Examples:
+
+Cart:
+
+Your cart is empty
+
+"Discover something delicious from NVO."
+
+[EXPLORE MENU]
+
+No promotions:
+
+No active promotions right now
+
+"Check back soon."
+
+No upcoming events:
+
+Nothing scheduled yet
+
+---
+
+50. ERROR STATES
+
+Never show ugly technical errors.
+
+Example:
+
+Instead of:
+
+"500 INTERNAL SERVER ERROR"
+
+show:
+
+Something went wrong
+
+"Please try again."
+
+[TRY AGAIN]
+
+---
+
+51. LOADING STATES
+
+Use skeletons/spinners where appropriate.
+
+The user should always understand that the application is working.
+
+---
+
+52. ADMIN ANALYTICS DASHBOARD
+
+Create a visually excellent dashboard.
+
+Include cards such as:
+
+WEBSITE VISITORS
+2,481
+
+MENU VIEWS
+817
+
+ORDER CLICKS
+241
+
+RESERVATIONS
+86
+
+WHATSAPP CLICKS
+143
+
+REFERRAL CLAIMS
+119
+
+Then charts:
+
+* Visitors over time
+* Traffic sources
+* Most viewed meals
+* Most clicked promotions
+* Referral performance
+* Conversion actions
+
+---
+
+53. IMPORTANT ANALYTICS PRINCIPLE
+
+The system must distinguish:
+
+Traffic
+
+People visiting the website.
+
+Engagement
+
+People interacting with the website.
+
+Intent
+
+People clicking order/reservation/WhatsApp/directions.
+
+Conversion
+
+Confirmed outcomes where reliable confirmation exists.
+
+Never display:
+
+"2,000 visitors = 2,000 customers."
+
+Those are completely different measurements.
+
+---
+
+54. TECHNICAL ARCHITECTURE
+
+Use a modern production-ready architecture.
+
+Preferred approach:
+
+* Modern React-based frontend
+* Server-side/backend functionality where appropriate
+* Secure database
+* REST/JSON APIs or server actions
+* Authentication
+* Cloud storage for media
+* Server-side social integrations
+* Analytics event pipeline
+
+The exact framework may be selected based on the AI builder's supported environment, but the final architecture must be maintainable and deployable.
+
+Do not create a fake frontend-only implementation for backend requirements.
+
+---
+
+55. ENVIRONMENT VARIABLES
+
+All secrets must be environment variables.
+
+Examples:
+
+* DATABASE_URL
+* AUTH_SECRET
+* WHATSAPP configuration
+* SOCIAL API credentials
+* AI API key
+* Storage credentials
+* Analytics configuration
+
+Never hard-code secrets.
+
+---
+
+56. API STRUCTURE
+
+Create organized API/service layers for:
+
+* Meals
+* Categories
+* Promotions
+* Coupons
+* Orders
+* Reservations
+* Posts
+* Events
+* Referrals
+* Analytics
+* Social publishing
+* Authentication
+* Settings
+
+Keep business logic out of random UI components.
+
+---
+
+57. TESTING
+
+Before considering the project complete, test:
+
+Customer
+
+* Browse menu
+* Add item
+* Remove item
+* Change quantity
+* Apply coupon
+* Invalid coupon
+* Expired coupon
+* Checkout
+* WhatsApp redirect
+* Reservation
+* Referral
+* Referral expiration
+* Mobile experience
+
+Admin
+
+* Login
+* Create meal
+* Edit meal
+* Delete meal
+* Create promotion
+* Create coupon
+* Create post
+* Publish post
+* Schedule post
+* Create event
+* Publish top 3 customers
+* Analytics
+* Social connection
+
+Security
+
+* Unauthorized admin access
+* Invalid API requests
+* Role restrictions
+* Coupon manipulation
+* Referral manipulation
+* Secret exposure
+
+---
+
+58. SEED DATA
+
+Create realistic sample data so the website can immediately demonstrate its functionality.
+
+Include:
+
+* Sample meals
+* Categories
+* One promotion
+* One event
+* Sample testimonials
+* Sample Top 3 loyal customers
+* Sample posts
+
+Clearly mark seed/demo content so it can easily be replaced by NVO's real information.
+
+---
+
+59. ADMIN ONBOARDING
+
+When NVO first logs in:
+
+Provide a setup flow.
+
+Step 1:
+
+Restaurant information.
+
+Step 2:
+
+Logo/branding.
+
+Step 3:
+
+WhatsApp.
+
+Step 4:
+
+Menu.
+
+Step 5:
+
+Social accounts.
+
+Step 6:
+
+Referral settings.
+
+Step 7:
+
+Analytics.
+
+Step 8:
+
+Publish.
+
+---
+
+60. DEPLOYMENT READINESS
+
+The final application must be production-ready.
+
+Before delivery:
+
+* Build successfully
+* No broken routes
+* No console errors that affect functionality
+* No exposed secrets
+* Database migrations complete
+* Environment variables documented
+* Responsive testing complete
+* Authentication tested
+* APIs tested
+* Social integrations tested where credentials are available
+* WhatsApp links tested
+* Referral system tested
+* Coupon system tested
+* Analytics events tested
+
+---
+
+61. IMPORTANT PRODUCT PRINCIPLE
+
+Do NOT build this as:
+
+"Here is a beautiful restaurant website."
+
+Build it as:
+
+"NVO's digital customer engine."
+
+The system should help NVO:
+
+GET DISCOVERED
+
+Google
+Search
+Maps
+Social
+Referrals
+Content
+
+↓
+
+GET VISITS
+
+Website
+Campaign landing pages
+Promotions
+Events
+
+↓
+
+GET ACTIONS
+
+Order
+WhatsApp
+Reservation
+Call
+Directions
+
+↓
+
+GET CUSTOMERS
+
+Restaurant visit/order
+
+↓
+
+GET REPEAT CUSTOMERS
+
+Offers
+Loyalty
+Customer communication
+
+↓
+
+GET REFERRALS
+
+Refer a friend
+Referral coupon
+
+↓
+
+GET MORE DISCOVERY
+
+Customer shares
+Reviews
+Content
+Organic visibility
+
+---
+
+62. MOST IMPORTANT SUCCESS CRITERIA
+
+The project is NOT complete simply because:
+
+* The homepage looks beautiful
+* The animations work
+* The menu exists
+* The admin dashboard exists
+
+It is complete when the entire journey works.
+
+A customer should be able to:
+
+Discover → Visit → Browse → Add to cart → Apply coupon → Confirm → Open WhatsApp
+
+And NVO staff should be able to:
+
+Log in → Add meal → Create promotion → Create post → Generate captions → Publish → Schedule → View analytics
+
+And an existing customer should be able to:
+
+Refer friend → Generate unique referral → Friend opens link → Claim offer → Save coupon → Order
+
+And NVO should be able to:
+
+Publish once → Website updates → Authorized social channels receive platform-specific content
+
+---
+
+63. FINAL BUILD INSTRUCTION TO THE AI
+
+DO NOT create a superficial mockup.
+
+DO NOT create buttons that pretend to work.
+
+DO NOT create fake analytics.
+
+DO NOT create fake social integrations.
+
+DO NOT hard-code meals, prices, promotions or social accounts.
+
+DO NOT hard-code secret credentials.
+
+Build the application with real frontend, backend, database, authentication, API/service architecture and persistent data.
+
+If an external integration requires credentials or OAuth authorization that cannot be provided during development, build the complete integration architecture and clearly provide the connection/setup screen instead of pretending the integration works.
+
+Prioritize production-quality functionality over unnecessary visual effects.
+
+The website must be:
+
+Fast. Responsive. Secure. Beautiful. Maintainable. Accessible. Mobile-first. Conversion-focused.
+
+The primary business goal is:
+
+HELP NVO GET AND RETAIN CUSTOMERS.
+
+The secondary goal is:
+
+MAKE NVO'S DIGITAL CONTENT EASY TO CREATE, MANAGE, DISTRIBUTE AND MEASURE.
+
+The final result should feel like a premium restaurant website on the outside and a powerful customer/content management system on the inside.
+
+
+
+also, i imagined another way of improving customer constant relations in the website whereby 5 coupons show in the website in a week, that means a perticular discount if anyone sees it at that moment and download it, it can be more coupons or less, it is up to the admin...also ppl can use the coupon to refer a new person and once a link is generated on the website, they sent it to one of their friend and their friend go to the website through the link within 5mins then order for something and that means the person thta got the generated link coupon can have a percentage discount  when he wants to buy food or something like that, or the coupon can show ever day but at a perticular random time for about 30mins or an hour...depending on the admin, you can broaden this coupon thing, i want the admin to be able to manipulate the coupon rules and regulations anytime he or she feels like as loong as the particular method is getting customers , more and more customer aquisition, so u can broaden it recomending the business strategy of easily getting customers in the logic also, we might not even include any rule and say the coupon shows everyday but at a particular random time for 5mins and anybody that sees that coupon has a free meal, making the coupon downloadable so they use it whenever they want to use it also, the admin can also on or off coupon whenever it feels like, all is that when a coupon action is bean created any public person visiting the website knows coupon flow is active so that when he nows want to check and cathc the coupon, he understand that he just didnt see the coupon at the right time if a persona already has the coupon for that day the coupons stay there for the whole day with the note saying used today because a coupon for a perso it the flow and the admin can decide to make it 3 or 4ppl or anything he wants, the coupon can even be activated but it shouldnt show until after a week or 3days or something, or it should even show(thats the rule for that particular coupon), anywhats just check this also and analyze everything well...its all business and the goad is to use it to gain customers 
+
+
+NVO in Google Maps =  "https://www.google.com/maps/place/NVO+All+Seafood+Restaurant/@6.3729882,2.4852719,20z/data=!4m6!3m5!1s0x103cab1ed077ec65:0x47c7471ac011c963!8m2!3d6.3729882!4d2.4852719!16s%2Fg%2F11stdt0dmg?entry=ttu&g_ep=EgoyMDI2MDkyMi4wIKXMDSoASAFQAw%3D%3D"

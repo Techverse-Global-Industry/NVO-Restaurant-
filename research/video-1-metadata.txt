@@ -1,0 +1,13 @@
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'C:\Users\User\Documents\GitHub\NVO Restaurant\WhatsApp Video 2026-09-23 at 1.43.58 AM.mp4':
+  Metadata:
+    major_brand     : mp42
+    minor_version   : 0
+    compatible_brands: mp42isom
+  Duration: 00:00:30.07, start: 0.000000, bitrate: 915 kb/s
+  Stream #0:0[0x1](und): Video: h264 (Baseline) (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 576x576, 846 kb/s, 30 fps, 30 tbr, 600 tbn (default)
+      Metadata:
+        vendor_id       : [0][0][0][0]
+  Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 65 kb/s (default)
+      Metadata:
+        vendor_id       : [0][0][0][0]
+At least one output file must be specified

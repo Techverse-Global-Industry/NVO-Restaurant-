@@ -1,0 +1,9 @@
+# Replace this hostname with a domain/subdomain whose DNS points to the server.
+# This configuration assumes visitors connect directly to Caddy, without a CDN.
+nvo.example.com {
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:3000 {
+        # Overwrite user-supplied headers with the actual client socket address.
+        header_up X-Real-IP {remote_host}
+    }
+}
