@@ -876,6 +876,38 @@ p {
 .prose .button {
   margin-top: 15px;
 }
+.ceo-profile {
+  align-items: center;
+}
+.ceo-profile .ceo-portrait {
+  min-height: 650px;
+  border-radius: 0 140px 0 0;
+  background: #e5ddcf;
+}
+.ceo-portrait-label {
+  position: absolute;
+  bottom: 22px;
+  left: 22px;
+  z-index: 1;
+  padding: 10px 13px;
+  background: rgba(20, 33, 60, 0.88);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.8px;
+}
+.ceo-copy h2 {
+  max-width: 440px;
+}
+.ceo-kitchen-note {
+  margin-top: 26px !important;
+  padding: 16px 0 16px 18px;
+  border-left: 2px solid var(--gold);
+  color: var(--ink) !important;
+  font-family: var(--serif);
+  font-size: 20px;
+  line-height: 1.45 !important;
+}
 .notice {
   font-size: 12px;
   background: #ede9dc;
@@ -1974,6 +2006,10 @@ p {
   }
   .editorial-photo {
     min-height: 420px;
+  }
+  .ceo-profile .ceo-portrait {
+    min-height: 500px;
+    border-radius: 0 82px 0 0;
   }
   .gallery-grid {
     grid-template-columns: 1fr 1fr;

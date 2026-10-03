@@ -29,6 +29,7 @@ export default async function SectionLayout({
   const names: Record<string, [string, string]> = {
     menu: ["Our menu", "Notre carte"],
     about: ["Our story", "Notre histoire"],
+    ceo: ["Meet the CEO", "Rencontrez le PDG"],
     gallery: ["Gallery", "Galerie"],
     news: ["NVO journal", "Journal NVO"],
     events: ["Events", "?v?nements"],

@@ -35,6 +35,7 @@ export function Header() {
     ["/specials", tr("Current specials", "À l’honneur")],
     ["/offers", tr("Coupons & rewards", "Coupons & privilèges")],
     ["/about", tr("The NVO story", "Notre histoire")],
+    ["/ceo", tr("Meet the CEO", "Rencontrez le PDG")],
     ["/events", tr("What’s on", "Événements")],
   ];
   return (
@@ -170,6 +171,7 @@ export function Footer() {
           <div>
             <h3>{tr("Stay a little", "Découvrez NVO")}</h3>
             <Link href="/about">{tr("Our story", "Notre histoire")}</Link>
+            <Link href="/ceo">{tr("Meet the CEO", "Rencontrez le PDG")}</Link>
             <Link href="/gallery">{tr("The gallery", "La galerie")}</Link>
             <Link href="/news">{tr("NVO journal", "Le journal NVO")}</Link>
             <Link href="/subscribe">

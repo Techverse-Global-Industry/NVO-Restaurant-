@@ -793,6 +793,69 @@ export function AboutPage() {
     </>
   );
 }
+export function CeoPage() {
+  const { tr } = useNvo();
+  return (
+    <>
+      <Intro
+        eyebrow={tr("THE FACE OF NVO", "LE VISAGE DE NVO")}
+        title={tr("The King of the Kitchen.", "Le Roi de la Cuisine.")}
+        description={tr(
+          "The passion, precision and generous spirit behind every NVO experience.",
+          "La passion, l'exigence et la générosité derrière chaque expérience NVO.",
+        )}
+      />
+      <section className="section two-column ceo-profile">
+        <div className="editorial-photo ceo-portrait">
+          <Image
+            src="/images/nvo-ceo.jpg"
+            alt={tr(
+              "NVO Restaurant CEO, known as the King of the Kitchen",
+              "Le PDG de NVO Restaurant, connu comme le Roi de la Cuisine",
+            )}
+            fill
+            priority
+            sizes="(max-width:700px) 88vw, 42vw"
+            style={{ objectFit: "cover", objectPosition: "center" }}
+          />
+          <span className="ceo-portrait-label">
+            {tr("NVO RESTAURANT CEO", "PDG DE NVO RESTAURANT")}
+          </span>
+        </div>
+        <div className="prose ceo-copy">
+          <span className="eyebrow">
+            {tr("THE KING OF THE KITCHEN", "LE ROI DE LA CUISINE")}
+          </span>
+          <h2>
+            {tr("A standard you can taste.", "Une exigence qui se savoure.")}
+          </h2>
+          <p>
+            {tr(
+              "At NVO, the standard starts in the kitchen. Our CEO is known as the King of the Kitchen for a simple reason: he brings care, confidence and a sharp eye for flavour to every plate that leaves it.",
+              "Chez NVO, l'exigence commence en cuisine. Notre PDG est connu comme le Roi de la Cuisine pour une raison simple : il apporte attention, assurance et un œil aigu pour les saveurs à chaque assiette qui en sort.",
+            )}
+          </p>
+          <p>
+            {tr(
+              "He believes great food should feel generous, memorable and made for sharing. From the first welcome to the last bite, his passion sets the tone for the warmth, quality and unmistakable flavour guests come back for.",
+              "Pour lui, une grande cuisine doit être généreuse, mémorable et faite pour être partagée. Du premier accueil à la dernière bouchée, sa passion donne le ton de la chaleur, de la qualité et des saveurs inoubliables qui font revenir nos clients.",
+            )}
+          </p>
+          <p className="ceo-kitchen-note">
+            {tr(
+              "Big flavour. High standards. A table that always feels like home.",
+              "De grandes saveurs. Des exigences élevées. Une table où l'on se sent toujours chez soi.",
+            )}
+          </p>
+          <Link className="button" href="/menu">
+            {tr("Taste the NVO difference", "Découvrir la signature NVO")}
+            <ArrowUpRight size={17} />
+          </Link>
+        </div>
+      </section>
+    </>
+  );
+}
 export function GalleryPage() {
   const { tr } = useNvo();
   return (

@@ -13,6 +13,7 @@ import {
   ReservationPage,
   ContactPage,
   AboutPage,
+  CeoPage,
   GalleryPage,
   OffersPage,
   ReferralPage,
@@ -25,6 +26,7 @@ const titles: Record<string, string> = {
   reservation: "Reserve a table",
   contact: "Find us",
   about: "Our story",
+  ceo: "Meet the CEO",
   gallery: "Gallery",
   offers: "Coupons & rewards",
   specials: "Current specials",
@@ -75,6 +77,8 @@ export async function generateMetadata({
     menu: "Explore Nigerian favourites, seafood, rice, soups and drinks at NVO Restaurant in Agblangandan, Cotonou. Prepare your order on WhatsApp.",
     about:
       "Discover NVO Restaurant in Cotonou: Nigerian flavours, seafood and a warm welcome in Agblangandan.",
+    ceo:
+      "Meet the NVO Restaurant CEO, known as the King of the Kitchen. Discover the care and flavour behind every NVO experience in Cotonou.",
     contact:
       "Find NVO Restaurant near Commissariat Agblangandan, Cotonou. View our Google map, WhatsApp contact and visiting information.",
     reservation:
@@ -101,6 +105,7 @@ export async function generateMetadata({
     reservation: "Réserver une table",
     contact: "Adresse & contact à Cotonou",
     about: "Notre histoire",
+    ceo: "Rencontrez le PDG",
     gallery: "Galerie",
     offers: "Coupons & privilèges",
     specials: "Spécialités du moment",
@@ -117,6 +122,8 @@ export async function generateMetadata({
     menu: "La carte NVO à Cotonou : riz jollof, soupes nigérianes, shawarmas, grillades et plateaux de fruits de mer. Commandez sur WhatsApp à Agblangandan.",
     about:
       "Découvrez NVO Restaurant à Agblangandan, Cotonou : cuisine nigériane, fruits de mer et accueil chaleureux.",
+    ceo:
+      "Rencontrez le PDG de NVO Restaurant, connu comme le Roi de la Cuisine. Découvrez la passion derrière chaque expérience NVO à Cotonou.",
     contact:
       "Retrouvez NVO Restaurant près du Commissariat à Agblangandan, Cotonou. Adresse, carte Google et contact WhatsApp pour commander ou nous rendre visite.",
     reservation:
@@ -229,6 +236,8 @@ export default async function Page({
       return <ContactPage />;
     case "about":
       return <AboutPage />;
+    case "ceo":
+      return <CeoPage />;
     case "gallery":
       return <GalleryPage />;
     case "offers":
