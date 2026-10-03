@@ -13,11 +13,11 @@ export async function staff(): Promise<Staff | null> {
   const token = (await cookies()).get("nvo_staff")?.value;
   if (!token) return null;
   return (
-    (db()
+    (await db()
       .prepare(
         "SELECT staff.id,staff.email,staff.role FROM sessions JOIN staff ON staff.id=sessions.staff_id WHERE token=? AND expires>?",
       )
-      .get(digest(token), Date.now()) as Staff) || null
+      .get<Staff>(digest(token), Date.now())) || null
   );
 }
 export async function customer(create = false) {
@@ -44,8 +44,8 @@ export function verifyPassword(password: string, stored: string) {
 }
 export async function login(id: string) {
   const token = randomBytes(32).toString("hex");
-  db().prepare("DELETE FROM sessions WHERE expires<?").run(Date.now());
-  db()
+  await db().prepare("DELETE FROM sessions WHERE expires<?").run(Date.now());
+  await db()
     .prepare("INSERT INTO sessions VALUES(?,?,?)")
     .run(digest(token), id, Date.now() + 1000 * 60 * 60 * 12);
   (await cookies()).set("nvo_staff", token, {
@@ -60,16 +60,16 @@ export async function logout() {
   const jar = await cookies();
   const token = jar.get("nvo_staff")?.value;
   if (token)
-    db().prepare("DELETE FROM sessions WHERE token=?").run(digest(token));
+    await db().prepare("DELETE FROM sessions WHERE token=?").run(digest(token));
   jar.delete("nvo_staff");
 }
-export function limit(key: string, max = 30, windowMs = 60000) {
+export async function limit(key: string, max = 30, windowMs = 60000) {
   const c = db();
-  const row = c
+  const row = await c
     .prepare("SELECT count,reset FROM rate_limits WHERE key=?")
     .get(key) as { count: number; reset: number } | undefined;
   if (!row || row.reset < Date.now()) {
-    c.prepare("INSERT OR REPLACE INTO rate_limits VALUES(?,?,?)").run(
+    await c.prepare("INSERT OR REPLACE INTO rate_limits VALUES(?,?,?)").run(
       key,
       1,
       Date.now() + windowMs,
@@ -78,5 +78,5 @@ export function limit(key: string, max = 30, windowMs = 60000) {
   }
   if (row.count >= max)
     throw new Error("Too many attempts. Please wait a moment.");
-  c.prepare("UPDATE rate_limits SET count=count+1 WHERE key=?").run(key);
+  await c.prepare("UPDATE rate_limits SET count=count+1 WHERE key=?").run(key);
 }

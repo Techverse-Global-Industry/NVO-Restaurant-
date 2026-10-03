@@ -4,41 +4,41 @@ import { account } from "./accounts";
 import { eligible } from "./queue";
 import { generateCaptions } from "./captions";
 import { prepareImage, cleanExpiredMedia } from "./media";
-import { accountToken, graph, tiktok, ProviderError } from "./providers";
+import { accountInstagramGraph, accountToken, graph, tiktok, ProviderError } from "./providers";
 import { broadcast } from "./whatsapp";
 import { validateCaption } from "./validation";
 import { publicSite } from "./security";
 import type { Job, JobStatus, SocialPayload } from "./types";
 const leaseMs = 180000;
-export function recoverExpired() {
+export async function recoverExpired() {
   const now = Date.now();
-  db()
+  await db()
     .prepare(
       "UPDATE social_jobs SET status='retry',lease_owner=NULL,lease_until=NULL WHERE status='preparing' AND lease_until<?",
     )
     .run(now);
-  db()
+  await db()
     .prepare(
       "UPDATE social_jobs SET status='needs_review',last_error='Publishing was interrupted. Check the destination before retrying.',lease_owner=NULL,lease_until=NULL WHERE status='publishing' AND lease_until<?",
     )
     .run(now);
-  db()
+  await db()
     .prepare(
       "UPDATE whatsapp_deliveries SET status='needs_review',last_error='Sending was interrupted. Check before retrying.' WHERE status='sending' AND job_id IN (SELECT id FROM social_jobs WHERE status='needs_review')",
     )
     .run();
 }
-export function claimJob(): Job | undefined {
-  return transaction(() => {
-    recoverExpired();
-    const row = db()
+export async function claimJob(): Promise<Job | undefined> {
+  return transaction(async () => {
+    await recoverExpired();
+    const row = await db()
       .prepare(
         "SELECT j.* FROM social_jobs j WHERE j.status IN ('queued','retry','processing','inbox') AND j.next_attempt<=? AND NOT EXISTS (SELECT 1 FROM social_jobs busy WHERE busy.account_id=j.account_id AND busy.status IN ('preparing','publishing')) ORDER BY j.next_attempt,j.created_at LIMIT 1",
       )
       .get(Date.now()) as Job | undefined;
     if (!row) return;
     const owner = randomUUID();
-    db()
+    await db()
       .prepare(
         "UPDATE social_jobs SET status='preparing',attempts=attempts+1,lease_owner=?,lease_until=?,updated_at=? WHERE id=?",
       )
@@ -56,9 +56,9 @@ export async function processJob(
   fetcher: typeof fetch = fetch,
   prepare: typeof prepareImage = prepareImage,
 ) {
-  const a = account(j.account_id);
-  const owns = () => {
-    const row = db()
+  const a = await account(j.account_id);
+  const owns = async () => {
+    const row = await db()
       .prepare(
         "SELECT status,lease_owner,lease_until FROM social_jobs WHERE id=?",
       )
@@ -68,13 +68,13 @@ export async function processJob(
       row.lease_owner === j.lease_owner &&
       (row.lease_until || 0) > Date.now() &&
       ["preparing", "publishing"].includes(row.status) &&
-      account(j.account_id)?.status === "connected"
+      (await account(j.account_id))?.status === "connected"
     );
   };
-  const update = (fields: Partial<Job>) => {
+  const update = async (fields: Partial<Job>) => {
     const names = Object.keys(fields);
     if (!names.length) return;
-    db()
+    await db()
       .prepare(
         `UPDATE social_jobs SET ${names.map((n) => `${n}=?`).join(",")},updated_at=? WHERE id=? AND lease_owner=?`,
       )
@@ -85,19 +85,19 @@ export async function processJob(
         j.lease_owner,
       );
   };
-  const finish = (
+  const finish = async (
     status: JobStatus,
     error: string | null = null,
     next = Date.now(),
   ) => {
-    update({
+    await update({
       status,
       last_error: error,
       next_attempt: next,
       lease_owner: null,
       lease_until: null,
     });
-    db()
+    await db()
       .prepare("INSERT INTO social_attempts VALUES(?,?,?,?,?)")
       .run(
         randomUUID(),
@@ -109,13 +109,13 @@ export async function processJob(
   };
   try {
     if (!a || a.status !== "connected") {
-      finish("needs_auth", "Reconnect this account to continue.");
+      await finish("needs_auth", "Reconnect this account to continue.");
       return;
     }
     const p: SocialPayload = JSON.parse(j.payload);
     const alreadyTransferred = !!j.provider_id && a.platform === "tiktok";
-    if (!alreadyTransferred && !eligible(entry(j.entry_id))) {
-      finish("cancelled", "The website post is hidden, a sample, or expired.");
+    if (!alreadyTransferred && !eligible(await entry(j.entry_id))) {
+      await finish("cancelled", "The website post is hidden, a sample, or expired.");
       return;
     }
     if (
@@ -123,11 +123,12 @@ export async function processJob(
       p.entry.startsAt &&
       Date.parse(p.entry.startsAt) > Date.now()
     ) {
-      finish("queued", null, Date.parse(p.entry.startsAt));
+      await finish("queued", null, Date.parse(p.entry.startsAt));
       return;
     }
     publicSite();
     const token = await accountToken(a, fetcher);
+    const instagramApi = accountInstagramGraph(a);
     if (alreadyTransferred) {
       const status = await tiktok(
         "post/publish/status/fetch/",
@@ -139,22 +140,22 @@ export async function processJob(
       if (status.status === "PUBLISH_COMPLETE") {
         const remote = status.publicaly_available_post_id?.[0];
         if (remote)
-          update({
+          await update({
             permalink: `https://www.tiktok.com/share/video/${encodeURIComponent(String(remote))}`,
           });
-        finish("published");
+        await finish("published");
       } else if (status.status === "FAILED")
-        finish(
+        await finish(
           "failed",
           "TikTok could not finish this upload. Check the photo and account in TikTok.",
         );
       else if (Date.now() - Date.parse(j.created_at) > 7 * 86400000)
-        finish(
+        await finish(
           "needs_review",
           "Open TikTok to check this older upload. Its final status has not been confirmed.",
         );
       else
-        finish(
+        await finish(
           status.status === "SEND_TO_USER_INBOX" ? "inbox" : "processing",
           null,
           Date.now() +
@@ -166,8 +167,8 @@ export async function processJob(
       p.caption = (
         await generateCaptions(p, p.captionSource === "ai", fetcher)
       ).captions[a.platform];
-      if (!owns()) return;
-      update({ payload: JSON.stringify(p) });
+      if (!(await owns())) return;
+      await update({ payload: JSON.stringify(p) });
     }
     const caption = validateCaption(a.platform, p.caption);
     if (!p.entry.image)
@@ -178,12 +179,12 @@ export async function processJob(
     let media = j.media_url;
     if (!media) {
       media = await prepare(p.entry.image);
-      if (!owns()) return;
-      update({ media_url: media });
+      if (!(await owns())) return;
+      await update({ media_url: media });
     }
-    if (!owns()) return;
+    if (!(await owns())) return;
     if (a.platform === "whatsapp") {
-      update({ status: "publishing" });
+      await update({ status: "publishing" });
       const result = await broadcast(
         j,
         a,
@@ -194,8 +195,8 @@ export async function processJob(
         owns,
         fetcher,
       );
-      if (!owns()) return;
-      finish(
+      if (!(await owns())) return;
+      await finish(
         result,
         result === "needs_review"
           ? "Some messages need checking before retrying."
@@ -219,12 +220,12 @@ export async function processJob(
       if (!photo.id)
         throw new ProviderError("Facebook did not accept the photo.", "failed");
       container = String(photo.id);
-      if (!owns()) return;
-      update({ container_id: container });
+      if (!(await owns())) return;
+      await update({ container_id: container });
     }
     if (a.platform === "instagram") {
       if (!container) {
-        const prepared = await graph(
+        const prepared = await instagramApi(
           `${a.remote_id}/media`,
           token,
           {
@@ -245,10 +246,10 @@ export async function processJob(
             "failed",
           );
         container = String(prepared.id);
-        if (!owns()) return;
-        update({ container_id: container });
+        if (!(await owns())) return;
+        await update({ container_id: container });
       }
-      const ready = await graph(
+      const ready = await instagramApi(
         container!,
         token,
         { fields: "status_code" },
@@ -257,7 +258,7 @@ export async function processJob(
         fetcher,
       );
       if (ready.status_code === "IN_PROGRESS") {
-        finish("retry", null, Date.now() + 15000);
+        await finish("retry", null, Date.now() + 15000);
         return;
       }
       if (ready.status_code !== "FINISHED")
@@ -266,13 +267,13 @@ export async function processJob(
           "failed",
         );
     }
-    if (!owns()) return;
-    if (!eligible(entry(j.entry_id))) {
-      finish("cancelled", "The website post expired before publishing.");
+    if (!(await owns())) return;
+    if (!eligible(await entry(j.entry_id))) {
+      await finish("cancelled", "The website post expired before publishing.");
       return;
     }
-    update({ status: "publishing" });
-    if (!owns()) return;
+    await update({ status: "publishing" });
+    if (!(await owns())) return;
     let result: any;
     if (a.platform === "facebook")
       result = await graph(
@@ -287,7 +288,7 @@ export async function processJob(
         fetcher,
       );
     else if (a.platform === "instagram")
-      result = await graph(
+      result = await instagramApi(
         `${a.remote_id}/media_publish`,
         token,
         { creation_id: container! },
@@ -324,15 +325,15 @@ export async function processJob(
         "The platform did not return a publishing receipt. Check before retrying.",
         "uncertain",
       );
-    update({ provider_id: String(id) });
+    await update({ provider_id: String(id) });
     if (a.platform === "tiktok") {
-      finish("processing", null, Date.now() + 15000);
+      await finish("processing", null, Date.now() + 15000);
       return;
     }
     // The post receipt is durable before the optional permalink lookup.
-    finish("published");
+    await finish("published");
     try {
-      const info = await graph(
+      const info = await (a.platform === "instagram" ? instagramApi : graph)(
         String(id),
         token,
         { fields: a.platform === "instagram" ? "permalink" : "permalink_url" },
@@ -345,7 +346,7 @@ export async function processJob(
         typeof link === "string" &&
         /^https:\/\/(www\.)?(facebook|instagram)\.com\//.test(link)
       )
-        db()
+        await db()
           .prepare("UPDATE social_jobs SET permalink=? WHERE id=?")
           .run(link, j.id);
     } catch {
@@ -360,14 +361,14 @@ export async function processJob(
             "failed",
           );
     if (e.kind === "auth") {
-      db()
+      await db()
         .prepare(
           "UPDATE social_accounts SET status='reconnect',updated_at=? WHERE id=? AND status='connected'",
         )
         .run(new Date().toISOString(), j.account_id);
-      finish("needs_auth", e.message);
+      await finish("needs_auth", e.message);
     } else
-      finish(
+      await finish(
         e.kind === "uncertain"
           ? "needs_review"
           : e.kind === "retry" && j.attempts < 6
@@ -382,20 +383,24 @@ let lastMaintenance = 0;
 export async function tick(fetcher: typeof fetch = fetch) {
   if (Date.now() - lastMaintenance > 3600000) {
     await cleanExpiredMedia();
-    db().prepare("DELETE FROM social_oauth WHERE expires_at<?").run(Date.now());
-    db()
+    await db().prepare("DELETE FROM social_oauth WHERE expires_at<?").run(Date.now());
+    await db()
       .prepare("DELETE FROM social_caption_cache WHERE created_at<?")
       .run(new Date(Date.now() - 30 * 86400000).toISOString());
     lastMaintenance = Date.now();
   }
-  db()
+  await db()
     .prepare("INSERT OR REPLACE INTO social_worker VALUES(1,?)")
     .run(Date.now());
-  for (let n = 0; n < 4; n++) {
-    const j = claimJob();
+  // Scheduled Netlify Functions have a short execution window. One leased job
+  // per invocation keeps a slow provider from starving the remaining queue;
+  // the next minute safely continues because the lease is durable in Postgres.
+  const maxJobs = process.env.NETLIFY ? 1 : 4;
+  for (let n = 0; n < maxJobs; n++) {
+    const j = await claimJob();
     if (!j) break;
     await processJob(j, fetcher);
-    db()
+    await db()
       .prepare("INSERT OR REPLACE INTO social_worker VALUES(1,?)")
       .run(Date.now());
   }

@@ -17,15 +17,16 @@ export async function generateMetadata(): Promise<Metadata> {
     robots: { index: false, follow: true },
   };
 }
-export default function Page() {
-  const connected = !!db()
+export default async function Page() {
+  const connected = !!(await db()
     .prepare(
       "SELECT id FROM social_accounts WHERE platform='whatsapp' AND status='connected'",
     )
-    .get();
+    .get());
+  const config = connected ? await whatsappConfig() : null;
   return (
     <section>
-      <Subscribe phone={connected ? whatsappConfig()?.phone || null : null} />
+      <Subscribe phone={config?.phone || null} />
     </section>
   );
 }

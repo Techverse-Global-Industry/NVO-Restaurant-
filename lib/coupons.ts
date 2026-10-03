@@ -46,43 +46,43 @@ export function publicReward(r: Reward) {
     },
   };
 }
-export function couponAvailability(customer: string | null, network: string) {
-  return entries()
+export async function couponAvailability(customer: string | null, network: string) {
+  return Promise.all((await entries())
     .filter((e) => e.kind === "campaigns")
-    .map((e) => {
+    .map(async (e) => {
       const count = (
-        db()
+        await db()
           .prepare("SELECT count(*) AS n FROM rewards WHERE campaign_id=?")
           .get(e.id) as { n: number }
       ).n;
-      const claimed = !!db()
+      const claimed = !!(await db()
         .prepare(
           "SELECT id FROM rewards WHERE campaign_id=? AND (customer_id=? OR network_hash=?) LIMIT 1",
         )
-        .get(e.id, customer || "", network);
+        .get(e.id, customer || "", network));
       return {
         id: e.id,
         remaining: Math.max(0, (e.claimLimit || 10) - count),
         claimed,
       };
-    });
+    }));
 }
-export function lookupCoupon(code: string) {
-  const reward = db()
+export async function lookupCoupon(code: string) {
+  const reward = await db()
     .prepare("SELECT * FROM rewards WHERE code=?")
     .get(code.trim().toUpperCase()) as Reward | undefined;
   if (!reward) throw new Error("Coupon not found. Check the unique code.");
   return reward;
 }
-export function nameLegacyCoupon(
+export async function nameLegacyCoupon(
   id: string,
   customerId: string,
   name: unknown,
   network: string,
 ) {
   const validName = claimantName.parse(name);
-  return transaction(() => {
-    const reward = db()
+  return transaction(async () => {
+    const reward = await db()
       .prepare("SELECT * FROM rewards WHERE id=? AND customer_id=?")
       .get(id, customerId) as Reward | undefined;
     if (!reward) throw new Error("Coupon not found in your wallet.");
@@ -92,7 +92,7 @@ export function nameLegacyCoupon(
       );
     if (reward.status !== "claimed")
       throw new Error("Ask NVO to check the name on this coupon.");
-    db()
+    await db()
       .prepare(
         "UPDATE rewards SET claimant_name=?,network_hash=coalesce(network_hash,?) WHERE id=?",
       )
@@ -119,9 +119,9 @@ const saleSchema = z.object({
     .min(1)
     .max(40),
 });
-export function counterQuote(input: unknown) {
+export async function counterQuote(input: unknown) {
   const sale = saleSchema.parse(input);
-  const reward = lookupCoupon(sale.code);
+  const reward = await lookupCoupon(sale.code);
   if (reward.status !== "claimed")
     throw new Error(
       reward.status === "held"
@@ -162,9 +162,9 @@ export function counterQuote(input: unknown) {
   discount = Math.min(discount, subtotal);
   return { sale, reward, subtotal, discount, total: subtotal - discount };
 }
-export function redeemCounter(input: unknown, staffId: string) {
-  return transaction(() => {
-    const q = counterQuote(input);
+export async function redeemCounter(input: unknown, staffId: string) {
+  return transaction(async () => {
+    const q = await counterQuote(input);
     const now = new Date().toISOString();
     const id =
       "NVO-SALE-" +
@@ -179,15 +179,15 @@ export function redeemCounter(input: unknown, staffId: string) {
       id,
       created_at: now,
     };
-    db()
+    await db()
       .prepare("INSERT INTO counter_sales VALUES(?,?,?,?,?)")
       .run(id, q.reward.id, staffId, JSON.stringify(receipt), now);
-    db()
+    await db()
       .prepare(
         "UPDATE rewards SET status='redeemed',order_id=?,claimant_name=coalesce(claimant_name,?) WHERE id=? AND status='claimed'",
       )
       .run(id, q.sale.name, q.reward.id);
-    audit(staffId, "counter_coupon_redeemed:" + id, q.reward.id);
+    await audit(staffId, "counter_coupon_redeemed:" + id, q.reward.id);
     return receipt;
   });
 }

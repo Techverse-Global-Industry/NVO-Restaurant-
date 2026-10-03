@@ -18,7 +18,7 @@ export async function GET(
   const url = new URL("/admin", site);
   try {
     if (
-      !["meta", "tiktok"].includes(provider) ||
+      !["meta", "instagram", "tiktok"].includes(provider) ||
       req.nextUrl.searchParams.has("error")
     )
       throw new Error(
@@ -31,7 +31,7 @@ export async function GET(
       throw new Error(
         "Connection expired. Start again from Publish everywhere.",
       );
-    await finishConnection(state, cookie, provider as "meta" | "tiktok", code);
+    await finishConnection(state, cookie, provider as "meta" | "instagram" | "tiktok", code);
     url.searchParams.set("social", "choose");
   } catch {
     url.searchParams.set("social", "error");

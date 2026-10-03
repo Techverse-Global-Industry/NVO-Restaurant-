@@ -65,7 +65,7 @@ function campaign(id: string, overrides: Partial<Entry> = {}): Entry {
 before(() => {
   db();
 });
-test("hidden prices are absent in public catalogue and order quotes", () => {
+test("hidden prices are absent in public catalogue and order quotes", async () => {
   const meal = {
     ...entry("banga")!,
     price: 12000,
@@ -76,20 +76,20 @@ test("hidden prices are absent in public catalogue and order quotes", () => {
     (e) => e.id === "banga",
   );
   assert.equal(publicMeal?.price, null);
-  const q = quote([{ id: "banga", quantity: 2 }]);
+  const q = await quote([{ id: "banga", quantity: 2 }]);
   assert.equal(q.total, null);
   assert.equal(q.items[0].price, null);
 });
-test("server prices and quantities determine totals; unavailable items rejected", () => {
+test("server prices and quantities determine totals; unavailable items rejected", async () => {
   save({ ...entry("rice-fish")!, price: 7000, priceVisibility: "show" });
-  assert.equal(quote([{ id: "rice-fish", quantity: 2 }]).total, 14000);
-  assert.throws(() => quote([{ id: "rice-fish", quantity: -1 }]), /quantity/);
+  assert.equal((await quote([{ id: "rice-fish", quantity: 2 }])).total, 14000);
+  await assert.rejects(quote([{ id: "rice-fish", quantity: -1 }]), /quantity/);
   save({ ...entry("rice-fish")!, available: false });
-  assert.throws(() => quote([{ id: "rice-fish", quantity: 1 }]), /available/);
+  await assert.rejects(quote([{ id: "rice-fish", quantity: 1 }]), /available/);
   save({ ...entry("rice-fish")!, available: true });
 });
-test("mixed carts do not expose a misleading or reconstructable grand total", () => {
-  const q = quote([
+test("mixed carts do not expose a misleading or reconstructable grand total", async () => {
+  const q = await quote([
     { id: "banga", quantity: 1 },
     { id: "rice-fish", quantity: 1 },
   ]);
@@ -97,9 +97,8 @@ test("mixed carts do not expose a misleading or reconstructable grand total", ()
   assert.equal(q.subtotal, null);
   assert.equal(q.discount, null);
 });
-test("duplicate lines rejected rather than bypassing quantity constraints", () => {
-  assert.throws(
-    () =>
+test("duplicate lines rejected rather than bypassing quantity constraints", async () => {
+  await assert.rejects(
       quote([
         { id: "rice-fish", quantity: 20 },
         { id: "rice-fish", quantity: 20 },
@@ -107,12 +106,12 @@ test("duplicate lines rejected rather than bypassing quantity constraints", () =
     /Duplicate/,
   );
 });
-test("claim capacity and browser limits are transactional", () => {
+test("claim capacity and browser limits are transactional", async () => {
   save(campaign("capacity"));
-  claim("capacity", "alice");
-  assert.throws(() => claim("capacity", "alice"), /already/);
-  claim("capacity", "bob");
-  assert.throws(() => claim("capacity", "carol"), /claimed/);
+  await claim("capacity", "alice");
+  await assert.rejects(claim("capacity", "alice"), /already/);
+  await claim("capacity", "bob");
+  await assert.rejects(claim("capacity", "carol"), /claimed/);
   assert.equal(
     (
       db()
@@ -124,49 +123,49 @@ test("claim capacity and browser limits are transactional", () => {
     2,
   );
 });
-test("activation delay and expiry are distinct and enforced by server", () => {
+test("activation delay and expiry are distinct and enforced by server", async () => {
   save(campaign("delayed", { activationDays: 3, validityDays: 7 }));
-  const r = claim("delayed", "alice");
+  const r = await claim("delayed", "alice");
   assert.ok(Date.parse(r.active_at) - Date.parse(r.claimed_at) >= 3 * 86400000);
   assert.equal(
     Date.parse(r.expires_at) - Date.parse(r.active_at),
     7 * 86400000,
   );
-  assert.throws(
-    () => quote([{ id: "rice-fish", quantity: 1 }], r.code, "alice"),
+  await assert.rejects(
+    quote([{ id: "rice-fish", quantity: 1 }], r.code, "alice"),
     /not active/,
   );
 });
-test("coupon ownership, snapshotted terms and expiry protect totals", () => {
+test("coupon ownership, snapshotted terms and expiry protect totals", async () => {
   save(campaign("snapshot"));
-  const r = claim("snapshot", "alice");
+  const r = await claim("snapshot", "alice");
   save(campaign("snapshot", { discountValue: 90 }));
   assert.equal(
-    quote([{ id: "rice-fish", quantity: 1 }], r.code, "alice").discount,
+    (await quote([{ id: "rice-fish", quantity: 1 }], r.code, "alice")).discount,
     700,
   );
-  assert.throws(
-    () => quote([{ id: "rice-fish", quantity: 1 }], r.code, "bob"),
+  await assert.rejects(
+    quote([{ id: "rice-fish", quantity: 1 }], r.code, "bob"),
     /wallet/,
   );
   db()
     .prepare("UPDATE rewards SET expires_at=? WHERE id=?")
     .run("2020-01-01T00:00:00.000Z", r.id);
-  assert.throws(
-    () => quote([{ id: "rice-fish", quantity: 1 }], r.code, "alice"),
+  await assert.rejects(
+    quote([{ id: "rice-fish", quantity: 1 }], r.code, "alice"),
     /expired/,
   );
 });
-test("hidden-price coupon quote does not leak private price through savings", () => {
+test("hidden-price coupon quote does not leak private price through savings", async () => {
   save(campaign("hidden"));
-  const r = claim("hidden", "alice");
-  const q = quote([{ id: "banga", quantity: 1 }], r.code, "alice");
+  const r = await claim("hidden", "alice");
+  const q = await quote([{ id: "banga", quantity: 1 }], r.code, "alice");
   assert.equal(q.discount, null);
   assert.equal(q.total, null);
 });
-test("expired campaign cannot issue rewards", () => {
+test("expired campaign cannot issue rewards", async () => {
   save(campaign("expired", { endsAt: "2020-01-01T00:00:00.000Z" }));
-  assert.throws(() => claim("expired", "alice"), /not open/);
+  await assert.rejects(claim("expired", "alice"), /not open/);
 });
 test("unsafe settings and impossible campaigns are rejected", () => {
   assert.equal(

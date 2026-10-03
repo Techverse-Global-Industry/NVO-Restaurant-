@@ -1,6 +1,6 @@
 # NVO Restaurant
 
-Working website preview for NVO in Agblangandan, Cotonou. Built with Next.js, React, TypeScript and a persistent SQLite database. Original supplied assets remain intact; selected photographs are copied into `public/images`.
+Working website for NVO in Agblangandan, Cotonou. Built with Next.js, React, TypeScript, Supabase PostgreSQL and Supabase Storage for Netlify production. A local SQLite fallback remains available for development. Original supplied assets remain intact; selected photographs are copied into `public/images`.
 
 ## Run locally
 
@@ -16,7 +16,7 @@ npm start
 
 Open http://localhost:3000. Admin: http://localhost:3000/admin. The generated local credentials are in `private/LOCAL-ADMIN.txt`; keep that file and `.env.local` private. Setup preserves existing configuration. Changing bootstrap credentials does not update an existing database account.
 
-For development, use `npm run dev`. Data persists in `data/nvo.sqlite`; uploaded images persist in `data/uploads`. Never replace or delete the database to update restaurant content: use the admin interface.
+For development, use `npm run dev`. With no `NVO_DATABASE_URL`, local data persists in `data/nvo.sqlite` and legacy uploads in `data/uploads`. Netlify production uses Supabase PostgreSQL and the `nvo-media` Storage bucket instead. Never replace or delete the database to update restaurant content: use the admin interface.
 
 ## Implemented
 
@@ -39,7 +39,7 @@ This is a local first implementation, not the complete 63-section platform or a 
 
 Before public launch, review meal identities/descriptions and all restaurant policies, confirm opening hours, test the WhatsApp destination on a phone, and visually confirm the supplied map pin. Complete customer abuse controls, staff/password recovery, backups and restoration tests, privacy/retention requirements, HTTPS and deployment configuration. Do not enable campaigns until their terms and redemption process are approved.
 
-SQLite requires a single persistent Node server and durable disk; this build is not suitable for an ephemeral/serverless filesystem. Node currently labels `node:sqlite` experimental. Publishing workers are included; PostgreSQL migration would be needed before a broader multi-host deployment. Set `SITE_URL` to the public domain and `SECURE_COOKIES=true` behind HTTPS. Fonts are self-hosted with their licenses; the Google map requires external network access. The optional Maps Embed API key must be restricted to the deployed site and API.
+For Netlify, set the Supabase Transaction pooler URL in `NVO_DATABASE_URL`, the `nvo-media` Storage values, `SITE_URL=https://www.nvorestaurant.com`, `SECURE_COOKIES=true`, and the existing social encryption key. The database layer rejects the wrong Supabase pooler mode on Netlify. A scheduled Netlify Function processes social work once per minute; no permanent worker is required. See [the Netlify readiness guide](research/netlify-readiness.md) for the exact launch sequence. Fonts are self-hosted with their licenses; the Google map requires external network access. The optional Maps Embed API key must be restricted to the deployed site and API.
 
 ## Verification
 
@@ -73,13 +73,13 @@ See [research and planning](research/README.md) for source evidence, the asset a
 
 ## Publishing and WhatsApp subscriptions
 
-Admin **Publish everywhere** connects Facebook Pages, linked Instagram professional accounts, TikTok uploads and WhatsApp subscriber messaging. Choose defaults or select/deselect each destination on each story, special or event. Four automatically generated captions with optional manual editing, scheduling, durable retries, account encryption, duplicate protection and individual WhatsApp delivery records are implemented. TikTok requires finishing the post in its inbox. Public `/subscribe` records consent through signed incoming WhatsApp messages and supports STOP.
+Admin **Publish everywhere** connects Facebook Pages, Instagram professional accounts through direct Instagram Login (no Facebook Page required), TikTok uploads and WhatsApp subscriber messaging. Choose defaults or select/deselect each destination on each story, special or event. Four automatically generated captions with optional manual editing, scheduling, durable retries, account encryption, duplicate protection and individual WhatsApp delivery records are implemented. TikTok requires finishing the post in its inbox. Public `/subscribe` records consent through signed incoming WhatsApp messages and supports STOP.
 
-Run `npm run setup:social`, configure the private server values, and follow [the activation guide](research/social-publishing.md). Real posting remains unverified until actual provider accounts/apps are configured. Automated tests use simulated provider responses and never send real social posts or messages.
+Run `npm run setup:social`, put its stable generated key and the private provider values in Netlify, and follow [the activation guide](research/social-publishing.md). Real posting remains unverified until actual provider accounts/apps are configured. Automated tests use simulated provider responses and never send real social posts or messages.
 
 ## Named coupons, automatic translation and motion
 
-See [the owner activation and daily-use guide](research/owner-activation-guide.md). Named downloadable cards, strict IP checks, a verified counter-sale redemption flow, local English/French translation, automatic platform captions and motion controls are implemented. Start with `npm start` so the trusted client-IP checks are active. The translation models run in a separate server worker and are installed with `npm run setup:translation`; no paid translation API is required.
+See [the owner activation and daily-use guide](research/owner-activation-guide.md). Named downloadable cards, strict IP checks, a verified counter-sale redemption flow, English/French translation, automatic platform captions and motion controls are implemented. The local server signs client IPs during local development; Netlify's Edge Function provides the equivalent signed value in production. Local development uses the downloaded OPUS models; Netlify automatic translation is an opt-in OpenAI API feature, or staff can switch it off and enter both languages manually.
 
 ## Current PDF menu
 

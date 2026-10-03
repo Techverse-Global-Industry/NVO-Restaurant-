@@ -31,8 +31,8 @@ type Config = {
   phone: string;
   templates: Partial<Record<Language, { name: string; language: string }>>;
 };
-export function whatsappConfig(): Config | null {
-  const row = db()
+export async function whatsappConfig(): Promise<Config | null> {
+  const row = await db()
     .prepare("SELECT data FROM social_config WHERE key='whatsapp'")
     .get() as { data: string } | undefined;
   return row ? JSON.parse(row.data) : null;
@@ -97,10 +97,10 @@ export async function connectWhatsApp(fetcher: typeof fetch = fetch) {
   }
   const now = new Date().toISOString(),
     id = "whatsapp-business";
-  transaction(() => {
-    db()
+  await transaction(async () => {
+    await db()
       .prepare(
-        "INSERT INTO social_accounts VALUES(?,'whatsapp',?,?,?,?, 'connected',0,?,?) ON CONFLICT(id) DO UPDATE SET remote_id=excluded.remote_id,name=excluded.name,token=excluded.token,status='connected',updated_at=excluded.updated_at",
+        "INSERT INTO social_accounts VALUES(?,'whatsapp',?,?,?,?, 'connected',false,?,?) ON CONFLICT(id) DO UPDATE SET remote_id=excluded.remote_id,name=excluded.name,token=excluded.token,status='connected',updated_at=excluded.updated_at",
       )
       .run(
         id,
@@ -111,7 +111,7 @@ export async function connectWhatsApp(fetcher: typeof fetch = fetch) {
         now,
         now,
       );
-    db()
+    await db()
       .prepare("INSERT OR REPLACE INTO social_config VALUES('whatsapp',?)")
       .run(JSON.stringify(config));
   });
@@ -124,14 +124,14 @@ export function verifyWhatsAppSignature(raw: Buffer, signature: string) {
     .digest();
   return timingSafeEqual(expected, Buffer.from(signature.slice(7), "hex"));
 }
-export function processWhatsAppWebhook(body: any) {
+export async function processWhatsAppWebhook(body: any) {
   if (body.object !== "whatsapp_business_account") return;
-  transaction(() => {
+  return transaction(async () => {
     for (const e of body.entry || [])
       for (const change of e.changes || []) {
         const value = change.value;
         if (!value || change.field !== "messages") continue;
-        const connected = db()
+        const connected = await db()
           .prepare(
             "SELECT id FROM social_accounts WHERE platform='whatsapp' AND remote_id=?",
           )
@@ -145,7 +145,7 @@ export function processWhatsAppWebhook(body: any) {
             continue;
           const ts = Number(message.timestamp);
           if (!Number.isFinite(ts) || ts > Date.now() / 1000 + 300) continue;
-          const inserted = db()
+          const inserted = await db()
             .prepare("INSERT OR IGNORE INTO whatsapp_inbound VALUES(?,?)")
             .run(message.id, new Date().toISOString());
           if (!inserted.changes) continue;
@@ -170,7 +170,7 @@ export function processWhatsAppWebhook(body: any) {
           ].includes(text);
           if (!joined && !stopped) continue;
           const phone = message.from;
-          const old = db()
+          const old = await db()
             .prepare(
               "SELECT last_timestamp,status FROM whatsapp_subscribers WHERE phone=?",
             )
@@ -187,7 +187,7 @@ export function processWhatsAppWebhook(body: any) {
                 ?.profile?.name || "",
             ).slice(0, 120),
             now = new Date().toISOString();
-          db()
+          await db()
             .prepare(
               "INSERT INTO whatsapp_subscribers VALUES(?,?,?,?,?,?,?) ON CONFLICT(phone) DO UPDATE SET name=excluded.name,status=excluded.status,consented_at=CASE WHEN excluded.status='subscribed' THEN excluded.consented_at ELSE whatsapp_subscribers.consented_at END,changed_at=excluded.changed_at,source=excluded.source,last_timestamp=excluded.last_timestamp",
             )
@@ -201,7 +201,7 @@ export function processWhatsAppWebhook(body: any) {
               ts,
             );
           if (stopped)
-            db()
+            await db()
               .prepare(
                 "UPDATE whatsapp_deliveries SET status='skipped',last_error='Customer unsubscribed.',updated_at=? WHERE phone=? AND status IN ('queued','failed','needs_review')",
               )
@@ -210,7 +210,7 @@ export function processWhatsAppWebhook(body: any) {
         for (const receipt of value.statuses || []) {
           if (!["sent", "delivered", "read", "failed"].includes(receipt.status))
             continue;
-          const previous = db()
+          const previous = await db()
             .prepare(
               "SELECT id,status,job_id FROM whatsapp_deliveries WHERE provider_id=?",
             )
@@ -225,7 +225,7 @@ export function processWhatsAppWebhook(body: any) {
             read: 4,
           };
           if ((rank[receipt.status] || 0) > (rank[previous.status] || 0)) {
-            db()
+            await db()
               .prepare(
                 "UPDATE whatsapp_deliveries SET status=?,last_error=?,updated_at=? WHERE id=?",
               )
@@ -238,7 +238,7 @@ export function processWhatsAppWebhook(body: any) {
                 previous.id,
               );
             if (receipt.status === "failed")
-              db()
+              await db()
                 .prepare(
                   "UPDATE social_jobs SET status='failed',last_error='WhatsApp reported a failed recipient delivery. Review the recipient results.',updated_at=? WHERE id=? AND status='published'",
                 )
@@ -257,7 +257,7 @@ export async function sendWhatsApp(
   language: Language,
   fetcher: typeof fetch = fetch,
 ) {
-  const template = whatsappConfig()?.templates[language];
+  const template = (await whatsappConfig())?.templates[language];
   if (!template)
     throw new ProviderError(
       `Connect an approved ${language.toUpperCase()} WhatsApp template first.`,
@@ -350,16 +350,16 @@ export async function broadcast(
   caption: string,
   media: string,
   language: Language,
-  owns: () => boolean,
+  owns: () => Promise<boolean>,
   fetcher: typeof fetch = fetch,
 ) {
   const count = (
-    db()
+    await db()
       .prepare("SELECT count(*) AS n FROM whatsapp_deliveries WHERE job_id=?")
       .get(j.id) as { n: number }
   ).n;
   if (!count) {
-    const subscribers = db()
+    const subscribers = await db()
       .prepare(
         "SELECT phone FROM whatsapp_subscribers WHERE status='subscribed'",
       )
@@ -369,9 +369,9 @@ export async function broadcast(
         "No subscribers yet. Invite customers to subscribe, then retry this post.",
         "failed",
       );
-    transaction(() => {
+    await transaction(async () => {
       for (const s of subscribers)
-        db()
+        await db()
           .prepare(
             "INSERT OR IGNORE INTO whatsapp_deliveries VALUES(?,?,?,'queued',NULL,0,?,NULL,?)",
           )
@@ -384,19 +384,23 @@ export async function broadcast(
           );
     });
   }
-  db()
+  await db()
     .prepare(
       "UPDATE whatsapp_deliveries SET status='skipped',last_error='Customer unsubscribed.' WHERE job_id=? AND status='queued' AND phone NOT IN (SELECT phone FROM whatsapp_subscribers WHERE status='subscribed')",
     )
     .run(j.id);
-  const due = db()
+  const due = await db()
     .prepare(
-      "SELECT * FROM whatsapp_deliveries WHERE job_id=? AND status='queued' AND next_attempt<=? LIMIT 3",
+      "SELECT * FROM whatsapp_deliveries WHERE job_id=? AND status='queued' AND next_attempt<=? LIMIT ?",
     )
-    .all(j.id, Date.now()) as { id: string; phone: string; attempts: number }[];
+    .all(j.id, Date.now(), process.env.NETLIFY ? 1 : 3) as {
+    id: string;
+    phone: string;
+    attempts: number;
+  }[];
   for (const d of due) {
-    if (!owns()) return "cancelled";
-    const claimed = db()
+    if (!(await owns())) return "cancelled";
+    const claimed = await db()
       .prepare(
         "UPDATE whatsapp_deliveries SET status='sending',attempts=attempts+1,updated_at=? WHERE id=? AND status='queued' AND phone IN (SELECT phone FROM whatsapp_subscribers WHERE status='subscribed')",
       )
@@ -412,7 +416,7 @@ export async function broadcast(
         language,
         fetcher,
       );
-      db()
+      await db()
         .prepare(
           "UPDATE whatsapp_deliveries SET status='sent',provider_id=?,last_error=NULL,updated_at=? WHERE id=?",
         )
@@ -433,7 +437,7 @@ export async function broadcast(
             : e.kind === "auth"
               ? "queued"
               : "failed";
-      db()
+      await db()
         .prepare(
           "UPDATE whatsapp_deliveries SET status=?,next_attempt=?,last_error=?,updated_at=? WHERE id=?",
         )
@@ -447,7 +451,7 @@ export async function broadcast(
       if (e.kind === "auth") throw e;
     }
   }
-  const statuses = db()
+  const statuses = await db()
     .prepare("SELECT status FROM whatsapp_deliveries WHERE job_id=?")
     .all(j.id) as { status: string }[];
   if (statuses.some((s) => s.status === "queued")) return "retry";

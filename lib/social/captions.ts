@@ -206,7 +206,7 @@ export async function generateCaptions(
   const cacheKey = sha(
     JSON.stringify({ v: 3, p, model: process.env.OPENAI_CAPTION_MODEL }),
   );
-  const cached = db()
+  const cached = await db()
     .prepare("SELECT data FROM social_caption_cache WHERE id=?")
     .get(cacheKey) as { data: string } | undefined;
   if (cached) return { captions: JSON.parse(cached.data), source: "ai" };
@@ -292,7 +292,7 @@ export async function generateCaptions(
       "AI returned an incomplete caption. Please try again or write your own.",
     );
   }
-  db()
+  await db()
     .prepare("INSERT OR REPLACE INTO social_caption_cache VALUES(?,?,?)")
     .run(cacheKey, JSON.stringify(captions), new Date().toISOString());
   return { captions, source: "ai" };

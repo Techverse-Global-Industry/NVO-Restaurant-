@@ -19,15 +19,44 @@ export async function graph(
   final = false,
   fetcher: typeof fetch = fetch,
 ): Promise<any> {
+  return graphAt("https://graph.facebook.com", endpoint, token, params, method, final, fetcher, true);
+}
+export async function instagramGraph(
+  endpoint: string,
+  token: string,
+  params: Record<string, string> = {},
+  method = "GET",
+  final = false,
+  fetcher: typeof fetch = fetch,
+): Promise<any> {
+  return graphAt("https://graph.instagram.com", endpoint, token, params, method, final, fetcher, false);
+}
+export function accountInstagramGraph(a: Account) {
+  let directLogin = false;
+  try {
+    directLogin = JSON.parse(unseal(a.token, a.id)).mode === "instagram_login";
+  } catch { /* Existing Facebook Login accounts use the Facebook Graph host. */ }
+  return directLogin ? instagramGraph : graph;
+}
+async function graphAt(
+  host: string,
+  endpoint: string,
+  token: string,
+  params: Record<string, string>,
+  method: string,
+  final: boolean,
+  fetcher: typeof fetch,
+  withProof: boolean,
+): Promise<any> {
   const values = new URLSearchParams(params);
-  if (token && process.env.META_APP_SECRET)
+  if (withProof && token && process.env.META_APP_SECRET)
     values.set(
       "appsecret_proof",
       createHmac("sha256", process.env.META_APP_SECRET)
         .update(token)
         .digest("hex"),
     );
-  const url = `https://graph.facebook.com/${metaVersion()}/${endpoint}`;
+  const url = `${host}/${metaVersion()}/${endpoint}`;
   let r: Response;
   try {
     r = await fetcher(method === "GET" ? `${url}?${values}` : url, {
@@ -186,6 +215,38 @@ export async function accountToken(a: Account, fetcher: typeof fetch = fetch) {
       "auth",
     );
   }
+  if (a.platform === "instagram") {
+    let data: { mode?: string; access_token: string };
+    try {
+      data = JSON.parse(token);
+    } catch {
+      // Tokens created through the older Facebook Login flow were stored raw.
+      data = { access_token: token };
+    }
+    if (data.mode !== "instagram_login") {
+      if (a.expires_at && a.expires_at < Date.now() + 60000)
+        throw new ProviderError("This account's authorization has expired. Reconnect it.", "auth");
+      return data.access_token;
+    }
+    if (a.expires_at && a.expires_at < Date.now() + 7 * 86400000) {
+      let refreshed: any;
+      try {
+        const url = new URL("https://graph.instagram.com/refresh_access_token");
+        url.search = new URLSearchParams({ grant_type: "ig_refresh_token", access_token: data.access_token }).toString();
+        const response = await fetcher(url, { signal: AbortSignal.timeout(25000), cache: "no-store" });
+        refreshed = await response.json();
+        if (!response.ok || !refreshed.access_token || !Number.isFinite(refreshed.expires_in)) throw new Error();
+      } catch {
+        throw new ProviderError("Reconnect this Instagram account to renew publishing access.", "auth");
+      }
+      data = { mode: "instagram_login", access_token: refreshed.access_token };
+      const expires = Date.now() + refreshed.expires_in * 1000;
+      await db().prepare("UPDATE social_accounts SET token=?,expires_at=?,updated_at=? WHERE id=? AND status='connected'")
+        .run(seal(JSON.stringify(data), a.id), expires, new Date().toISOString(), a.id);
+      return data.access_token;
+    }
+    return data.access_token;
+  }
   if (a.platform !== "tiktok") {
     if (a.expires_at && a.expires_at < Date.now() + 60000)
       throw new ProviderError(
@@ -206,7 +267,7 @@ export async function accountToken(a: Account, fetcher: typeof fetch = fetch) {
       "TikTok account identity changed. Reconnect it.",
       "auth",
     );
-  db()
+  await db()
     .prepare(
       "UPDATE social_accounts SET token=?,expires_at=?,updated_at=? WHERE id=? AND status='connected'",
     )

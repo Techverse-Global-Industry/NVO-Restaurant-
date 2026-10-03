@@ -36,31 +36,31 @@ beforeEach(() => {
   db().exec("DELETE FROM analytics; DELETE FROM analytics_excluded_visitors;");
 });
 
-test("one browser can make multiple page views; retries deduplicate and inactivity starts a new visit", () => {
+test("one browser can make multiple page views; retries deduplicate and inactivity starts a new visit", async () => {
   const first = event();
   assert.equal(
-    recordActivity("guest", first, pages, meals, now - 4000000),
+    await recordActivity("guest", first, pages, meals, now - 4000000),
     true,
   );
   assert.equal(
-    recordActivity("guest", first, pages, meals, now - 3900000),
+    await recordActivity("guest", first, pages, meals, now - 3900000),
     false,
   );
-  recordActivity(
+  await recordActivity(
     "guest",
     event({ page: "/menu", source: "direct" }),
     pages,
     meals,
     now - 3800000,
   );
-  recordActivity(
+  await recordActivity(
     "guest",
     event({ page: "/specials", source: "facebook" }),
     pages,
     meals,
     now - 60000,
   );
-  const report = activityReport(now);
+  const report = await activityReport(now);
   assert.equal(report.pageViews, 3);
   assert.equal(report.browsers, 1);
   assert.equal(report.visits, 2);
@@ -76,11 +76,11 @@ test("one browser can make multiple page views; retries deduplicate and inactivi
     ],
   );
 });
-test("staff visits are excluded retrospectively; admin paths, unknown pages and invalid cart items never count", () => {
-  recordActivity("staff", event(), pages, meals, now);
-  excludeStaffVisitor("staff");
-  assert.equal(activityReport(now).pageViews, 0);
-  assert.equal(recordActivity("staff", event(), pages, meals, now), false);
+test("staff visits are excluded retrospectively; admin paths, unknown pages and invalid cart items never count", async () => {
+  await recordActivity("staff", event(), pages, meals, now);
+  await excludeStaffVisitor("staff");
+  assert.equal((await activityReport(now)).pageViews, 0);
+  assert.equal(await recordActivity("staff", event(), pages, meals, now), false);
   for (const page of [
     "/admin",
     "/admin/settings",
@@ -88,11 +88,11 @@ test("staff visits are excluded retrospectively; admin paths, unknown pages and 
     "/missing",
   ])
     assert.equal(
-      recordActivity("guest", event({ page }), pages, meals, now),
+      await recordActivity("guest", event({ page }), pages, meals, now),
       false,
     );
   assert.equal(
-    recordActivity(
+    await recordActivity(
       "guest",
       event({ event: "add_to_cart", page: "/menu", itemId: "fake" }),
       pages,
@@ -101,11 +101,11 @@ test("staff visits are excluded retrospectively; admin paths, unknown pages and 
     ),
     false,
   );
-  assert.throws(() =>
+  await assert.rejects(
     recordActivity("guest", event({ consent: false }), pages, meals, now),
   );
 });
-test("legacy counts remain available but never inflate current guest metrics", () => {
+test("legacy counts remain available but never inflate current guest metrics", async () => {
   for (const page of ["/", "/admin", "/menu"])
     db()
       .prepare(
@@ -119,38 +119,38 @@ test("legacy counts remain available but never inflate current guest metrics", (
         "direct",
         new Date(now).toISOString(),
       );
-  recordActivity("guest", event(), pages, meals, now);
-  const r = activityReport(now);
+  await recordActivity("guest", event(), pages, meals, now);
+  const r = await activityReport(now);
   assert.equal(r.pageViews, 1);
   assert.deepEqual(
     { ...r.legacy },
     { pageViews: 3, browsers: 1, adminViews: 1 },
   );
 });
-test("reports apply exact 30-day cutoff, Cotonou calendar dates and actual cart quantities", () => {
-  recordActivity("old", event(), pages, meals, now - 30 * 86400000 - 1);
-  recordActivity(
+test("reports apply exact 30-day cutoff, Cotonou calendar dates and actual cart quantities", async () => {
+  await recordActivity("old", event(), pages, meals, now - 30 * 86400000 - 1);
+  await recordActivity(
     "guest",
     event(),
     pages,
     meals,
     Date.parse("2026-09-24T23:30:00Z"),
   );
-  recordActivity(
+  await recordActivity(
     "guest",
     event({ event: "add_to_cart", itemId: "banga", quantity: 3 }),
     pages,
     meals,
     now,
   );
-  recordActivity(
+  await recordActivity(
     "guest",
     event({ event: "remove_from_cart", itemId: "banga", quantity: 2 }),
     pages,
     meals,
     now,
   );
-  const r = activityReport(now);
+  const r = await activityReport(now);
   assert.equal(r.pageViews, 1);
   assert.deepEqual(
     r.trend.map((row) => ({ ...row })),

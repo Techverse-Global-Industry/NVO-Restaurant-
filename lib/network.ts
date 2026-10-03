@@ -1,7 +1,7 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { isIP } from "node:net";
 import { db } from "./db";
-export function networkHash(headers: Headers): string {
+export async function networkHash(headers: Headers): Promise<string> {
   const ip = headers.get("x-nvo-client-ip") || "";
   const signature = headers.get("x-nvo-ip-signature") || "";
   const key = process.env.NVO_INTERNAL_IP_KEY;
@@ -12,10 +12,10 @@ export function networkHash(headers: Headers): string {
   const expected = createHmac("sha256", key).update(ip).digest();
   if (!timingSafeEqual(expected, Buffer.from(signature, "hex")))
     throw new Error("Invalid network verification.");
-  db()
+  await db()
     .prepare("INSERT OR IGNORE INTO security_config VALUES('coupon_ip_key',?)")
     .run(randomBytes(32).toString("hex"));
-  const secret = db()
+  const secret = await db()
     .prepare("SELECT value FROM security_config WHERE key='coupon_ip_key'")
     .get() as { value: string };
   return createHmac("sha256", secret.value).update(ip).digest("hex");

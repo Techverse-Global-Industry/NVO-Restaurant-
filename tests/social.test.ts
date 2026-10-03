@@ -111,14 +111,14 @@ function addAccount(platform: Platform, id = platform, automatic = true) {
     );
   return id;
 }
-function save(e: Entry, plan?: unknown) {
-  transaction(() => {
-    db()
+async function save(e: Entry, plan?: unknown) {
+  await transaction(async () => {
+    await db()
       .prepare(
         "INSERT INTO entries VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data",
       )
       .run(e.id, e.kind, JSON.stringify(e));
-    queueEntry(e, plan);
+    await queueEntry(e, plan);
   });
 }
 const rows = () => db().prepare("SELECT * FROM social_jobs").all() as Job[];
@@ -164,19 +164,19 @@ test("encrypted credentials are bound to the account and detect tampering", () =
   }
   process.env.SITE_URL = site;
 });
-test("OAuth state rejects another browser, wrong provider and replay", () => {
-  const start = beginConnection("social-owner", "meta");
+test("OAuth state rejects another browser, wrong provider and replay", async () => {
+  const start = await beginConnection("social-owner", "meta");
   const state = new URL(start.url).searchParams.get("state")!;
-  assert.throws(() => consumeState(state, "wrong", "meta"));
-  assert.throws(() => consumeState(state, start.cookie, "tiktok"));
+  await assert.rejects(consumeState(state, "wrong", "meta"));
+  await assert.rejects(consumeState(state, start.cookie, "tiktok"));
   assert.equal(
-    consumeState(state, start.cookie, "meta").staff_id,
+    (await consumeState(state, start.cookie, "meta")).staff_id,
     "social-owner",
   );
-  assert.throws(() => consumeState(state, start.cookie, "meta"));
+  await assert.rejects(consumeState(state, start.cookie, "meta"));
 });
 test("OAuth connects only selected eligible accounts without backfilling posts", async () => {
-  const start = beginConnection("social-owner", "meta");
+  const start = await beginConnection("social-owner", "meta");
   const state = new URL(start.url).searchParams.get("state")!;
   const fetcher = (async (input) =>
     String(input).includes("oauth/access_token")
@@ -193,38 +193,38 @@ test("OAuth connects only selected eligible accounts without backfilling posts",
           ],
         })) as typeof fetch;
   await finishConnection(state, start.cookie, "meta", "code", fetcher);
-  const candidates = pendingAccounts("social-owner");
+  const candidates = await pendingAccounts("social-owner");
   assert.equal(candidates.length, 2);
   assert.ok(candidates.every((c) => !("token" in c)));
-  selectAccounts("social-owner", [candidates[1].id], true);
+  await selectAccounts("social-owner", [candidates[1].id], true);
   assert.equal(
     db().prepare("SELECT count(*) AS n FROM social_accounts").get()!.n,
     1,
   );
   assert.equal(rows().length, 0);
-  assert.equal(pendingAccounts("social-owner").length, 0);
+  assert.equal((await pendingAccounts("social-owner")).length, 0);
 });
-test("website save and outbox roll back together on invalid social input", () => {
+test("website save and outbox roll back together on invalid social input", async () => {
   const e = post();
-  assert.throws(() => save(e, { mode: "wrong" }));
+  await assert.rejects(save(e, { mode: "wrong" }));
   assert.equal(
     db().prepare("SELECT id FROM entries WHERE id=?").get(e.id),
     undefined,
   );
   assert.equal(rows().length, 0);
 });
-test("defaults, explicit destinations, website only, samples and drafts are respected", () => {
+test("defaults, explicit destinations, website only, samples and drafts are respected", async () => {
   addAccount("facebook");
   addAccount("instagram");
   const e = post();
-  save(e);
+  await save(e);
   assert.equal(rows().length, 2);
-  save(e, { mode: "selected", accounts: ["facebook"] });
+  await save(e, { mode: "selected", accounts: ["facebook"] });
   assert.equal(
     rows().find((j) => j.account_id === "instagram")!.status,
     "cancelled",
   );
-  save(e, { mode: "off" });
+  await save(e, { mode: "off" });
   assert.ok(rows().every((j) => j.status === "cancelled"));
   for (const overrides of [
     { demo: true },
@@ -233,20 +233,20 @@ test("defaults, explicit destinations, website only, samples and drafts are resp
     { endsAt: new Date(Date.now() - 1000).toISOString() },
     { kind: "meals" as const },
   ])
-    save(post(overrides));
+    await save(post(overrides));
   assert.equal(rows().length, 2);
 });
 test("scheduled posts wait; repeat saves do not duplicate; edits update only unsent jobs", async () => {
   addAccount("facebook");
   const e = post({ startsAt: new Date(Date.now() + 3600000).toISOString() });
-  save(e);
-  assert.equal(claimJob(), undefined);
-  save({ ...e, startsAt: undefined });
+  await save(e);
+  assert.equal(await claimJob(), undefined);
+  await save({ ...e, startsAt: undefined });
   const calls: string[] = [];
-  await processJob(claimJob()!, mockGraph(calls), fakeImage);
+  await processJob((await claimJob())!, mockGraph(calls), fakeImage);
   assert.equal(rows()[0].status, "published");
   assert.equal(rows()[0].provider_id, "page_post-1");
-  save({ ...e, startsAt: undefined, title: "Changed title" });
+  await save({ ...e, startsAt: undefined, title: "Changed title" });
   assert.equal(rows().length, 1);
   assert.equal(rows()[0].status, "published");
   assert.equal(calls.filter((c) => c.includes("/feed")).length, 1);
@@ -254,10 +254,10 @@ test("scheduled posts wait; repeat saves do not duplicate; edits update only uns
 test("Facebook and Instagram publish independently; provider tokens stay out of payloads", async () => {
   addAccount("facebook");
   addAccount("instagram");
-  save(post());
+  await save(post());
   const calls: string[] = [];
   for (let i = 0; i < 2; i++)
-    await processJob(claimJob()!, mockGraph(calls), fakeImage);
+    await processJob((await claimJob())!, mockGraph(calls), fakeImage);
   assert.ok(rows().every((j) => j.status === "published"));
   assert.ok(rows().every((j) => !j.payload.includes("secret-token")));
   const captions = rows().map((j) => JSON.parse(j.payload).caption);
@@ -266,53 +266,53 @@ test("Facebook and Instagram publish independently; provider tokens stay out of 
 });
 test("uncertain final POST is never blindly retried", async () => {
   addAccount("facebook");
-  save(post());
+  await save(post());
   const normal = mockGraph();
   const fetcher = (async (input, init) => {
     if (String(input).includes("/feed"))
       throw new Error("network timeout SECRET");
     return normal(input, init);
   }) as typeof fetch;
-  await processJob(claimJob()!, fetcher, fakeImage);
+  await processJob((await claimJob())!, fetcher, fakeImage);
   const j = rows()[0];
   assert.equal(j.status, "needs_review");
-  assert.equal(claimJob(), undefined);
+  assert.equal(await claimJob(), undefined);
   assert.ok(!j.last_error?.includes("SECRET"));
-  assert.throws(() => jobAction(j.id, "retry"));
-  jobAction(j.id, "retry", true);
+  await assert.rejects(jobAction(j.id, "retry"));
+  await jobAction(j.id, "retry", true);
   assert.equal(rows()[0].status, "queued");
 });
 test("auth failures pause the affected account while other destinations continue", async () => {
   addAccount("facebook");
   addAccount("instagram");
-  save(post());
-  const j = claimJob()!;
+  await save(post());
+  const j = (await claimJob())!;
   const fetcher = (async () =>
     response(
       { error: { code: 190, message: "private token value" } },
       400,
     )) as typeof fetch;
   await processJob(j, fetcher, fakeImage);
-  assert.equal(account(j.account_id)!.status, "reconnect");
+  assert.equal((await account(j.account_id))!.status, "reconnect");
   assert.equal(rows().find((r) => r.id === j.id)!.status, "needs_auth");
-  await processJob(claimJob()!, mockGraph(), fakeImage);
+  await processJob((await claimJob())!, mockGraph(), fakeImage);
   assert.equal(rows().filter((j) => j.status === "published").length, 1);
 });
 test("archiving or editing a leased post prevents its stale payload from being sent", async () => {
   addAccount("facebook");
   const e = post();
-  save(e);
-  const leased = claimJob()!;
-  cancelPending(e.id);
+  await save(e);
+  const leased = (await claimJob())!;
+  await cancelPending(e.id);
   const calls: string[] = [];
   await processJob(leased, mockGraph(calls), fakeImage);
   assert.equal(rows()[0].status, "cancelled");
   assert.equal(calls.length, 0);
 });
-test("a worker crash retries preparation but flags an uncertain publication", () => {
+test("a worker crash retries preparation but flags an uncertain publication", async () => {
   addAccount("facebook");
   addAccount("instagram");
-  save(post());
+  await save(post());
   db()
     .prepare(
       "UPDATE social_jobs SET status='preparing',lease_until=? WHERE account_id='facebook'",
@@ -323,7 +323,7 @@ test("a worker crash retries preparation but flags an uncertain publication", ()
       "UPDATE social_jobs SET status='publishing',lease_until=? WHERE account_id='instagram'",
     )
     .run(Date.now() - 1);
-  recoverExpired();
+  await recoverExpired();
   assert.equal(
     rows().find((j) => j.account_id === "facebook")!.status,
     "retry",
@@ -341,11 +341,11 @@ test("TikTok needs per-post consent and records inbox handoff separately from pu
     accounts: ["tiktok"],
     captions: { tiktok: "Lunch at NVO. #Cotonou" },
   };
-  save(e, plan);
+  await save(e, plan);
   assert.equal(rows().length, 0);
-  save(e, { ...plan, tiktokConsent: true });
+  await save(e, { ...plan, tiktokConsent: true });
   assert.equal(rows().length, 1);
-  assert.equal(getPlan(e.id).tiktokConsent, false);
+  assert.equal((await getPlan(e.id)).tiktokConsent, false);
   const bodies: any[] = [];
   const fetcher = (async (_input, init) => {
     const b = JSON.parse(String(init?.body));
@@ -357,11 +357,11 @@ test("TikTok needs per-post consent and records inbox handoff separately from pu
       error: { code: "ok" },
     });
   }) as typeof fetch;
-  await processJob(claimJob()!, fetcher, fakeImage);
+  await processJob((await claimJob())!, fetcher, fakeImage);
   assert.equal(rows()[0].status, "processing");
   assert.equal(bodies[0].post_mode, "MEDIA_UPLOAD");
   db().prepare("UPDATE social_jobs SET next_attempt=0").run();
-  await processJob(claimJob()!, fetcher, fakeImage);
+  await processJob((await claimJob())!, fetcher, fakeImage);
   assert.equal(rows()[0].status, "inbox");
 });
 test("TikTok expired access tokens refresh and persist encrypted refresh credentials", async () => {
@@ -374,30 +374,30 @@ test("TikTok expired access tokens refresh and persist encrypted refresh credent
       open_id: "tiktok-remote",
       expires_in: 3600,
     })) as typeof fetch;
-  assert.equal(await accountToken(account("tiktok")!, fetcher), "fresh");
-  assert.ok(!account("tiktok")!.token.includes("fresh"));
-  assert.ok(unseal(account("tiktok")!.token, "tiktok").includes("new-refresh"));
+  assert.equal(await accountToken((await account("tiktok"))!, fetcher), "fresh");
+  assert.ok(!(await account("tiktok"))!.token.includes("fresh"));
+  assert.ok(unseal((await account("tiktok"))!.token, "tiktok").includes("new-refresh"));
 });
-test("four distinct standard captions preserve facts, contact number and attribution links", () => {
+test("four distinct standard captions preserve facts, contact number and attribution links", async () => {
   const e = post({
     kind: "events",
     date: new Date(Date.now() + 3600000).toISOString(),
   });
   const captions = standardCaptions(
-    payloadFor(e, "fr", "standard", settings(), publicSite()),
+    payloadFor(e, "fr", "standard", await settings(), publicSite()),
   );
   assert.equal(new Set(Object.values(captions)).size, 4);
   assert.ok(captions.facebook.includes("utm_source=facebook"));
   assert.ok(captions.whatsapp.includes("utm_source=whatsapp"));
   assert.ok(captions.whatsapp.includes("STOP"));
-  assert.ok(captions.instagram.includes(settings().whatsapp));
+  assert.ok(captions.instagram.includes((await settings()).whatsapp));
   assert.ok(!captions.instagram.includes("link in bio"));
 });
 test("AI produces four structured captions in one request and caches the result", async () => {
   process.env.OPENAI_API_KEY = "test-key";
   process.env.OPENAI_CAPTION_MODEL = "test-model";
   let count = 0;
-  const p = payloadFor(post(), "fr", "ai", settings(), publicSite());
+  const p = payloadFor(post(), "fr", "ai", await settings(), publicSite());
   const captions = {
     facebook: "Facebook NVO",
     instagram: "Instagram NVO",
@@ -423,7 +423,7 @@ test("AI produces four structured captions in one request and caches the result"
   );
   await generateCaptions(p, true, fetcher);
   assert.equal(count, 1);
-  const another = payloadFor(post(), "fr", "ai", settings(), publicSite());
+  const another = payloadFor(post(), "fr", "ai", await settings(), publicSite());
   await assert.rejects(() =>
     generateCaptions(another, true, (async () =>
       response({
@@ -463,7 +463,7 @@ function webhook(
     ],
   };
 }
-test("WhatsApp webhook signatures, explicit opt-in, deduplication and STOP ordering", () => {
+test("WhatsApp webhook signatures, explicit opt-in, deduplication and STOP ordering", async () => {
   addAccount("whatsapp");
   const raw = Buffer.from(JSON.stringify(webhook("JOIN NVO")));
   const signature =
@@ -473,21 +473,21 @@ test("WhatsApp webhook signatures, explicit opt-in, deduplication and STOP order
       .digest("hex");
   assert.ok(verifyWhatsAppSignature(raw, signature));
   assert.ok(!verifyWhatsAppSignature(Buffer.from("tampered"), signature));
-  processWhatsAppWebhook(webhook("I want food"));
+  await processWhatsAppWebhook(webhook("I want food"));
   assert.equal(
     db().prepare("SELECT count(*) AS n FROM whatsapp_subscribers").get()!.n,
     0,
   );
   const ts = Math.floor(Date.now() / 1000);
   const join = webhook("ABONNER NVO", "unique-join", ts - 5);
-  processWhatsAppWebhook(join);
-  processWhatsAppWebhook(join);
+  await processWhatsAppWebhook(join);
+  await processWhatsAppWebhook(join);
   assert.equal(
     db().prepare("SELECT count(*) AS n FROM whatsapp_subscribers").get()!.n,
     1,
   );
-  processWhatsAppWebhook(webhook("STOP", "stop", ts));
-  processWhatsAppWebhook(webhook("JOIN NVO", "delayed-join", ts - 2));
+  await processWhatsAppWebhook(webhook("STOP", "stop", ts));
+  await processWhatsAppWebhook(webhook("JOIN NVO", "delayed-join", ts - 2));
   assert.equal(
     db().prepare("SELECT status FROM whatsapp_subscribers").get()!.status,
     "unsubscribed",
@@ -523,10 +523,10 @@ test("WhatsApp setup validates a real approved template before connecting", asyn
           verified_name: "NVO",
         })) as typeof fetch;
   await connectWhatsApp(fetcher);
-  assert.equal(account("whatsapp-business")?.platform, "whatsapp");
-  assert.equal(account("whatsapp-business")?.auto_publish, 0);
+  assert.equal((await account("whatsapp-business"))?.platform, "whatsapp");
+  assert.equal((await account("whatsapp-business"))?.auto_publish, 0);
   assert.equal(
-    unseal(account("whatsapp-business")!.token, "whatsapp-business"),
+    unseal((await account("whatsapp-business"))!.token, "whatsapp-business"),
     "wa-token",
   );
 });
@@ -540,13 +540,13 @@ test("WhatsApp only sends to subscribers and tracks individual receipts, without
         templates: { fr: { name: "nvo_updates", language: "fr" } },
       }),
     );
-  processWhatsAppWebhook(
+  await processWhatsAppWebhook(
     webhook("JOIN NVO", "one", Math.floor(Date.now() / 1000), "22912345678"),
   );
-  processWhatsAppWebhook(
+  await processWhatsAppWebhook(
     webhook("JOIN NVO", "two", Math.floor(Date.now() / 1000), "22987654321"),
   );
-  processWhatsAppWebhook(
+  await processWhatsAppWebhook(
     webhook(
       "STOP",
       "stop-two",
@@ -555,7 +555,7 @@ test("WhatsApp only sends to subscribers and tracks individual receipts, without
     ),
   );
   const e = post();
-  save(e);
+  await save(e);
   let sends = 0;
   const fetcher = (async (_url, init) => {
     sends++;
@@ -565,16 +565,16 @@ test("WhatsApp only sends to subscribers and tracks individual receipts, without
     assert.equal(b.template.components[0].parameters[0].type, "image");
     return response({ messages: [{ id: "wamid.one" }] });
   }) as typeof fetch;
-  await processJob(claimJob()!, fetcher, fakeImage);
+  await processJob((await claimJob())!, fetcher, fakeImage);
   assert.equal(sends, 1);
   assert.equal(rows()[0].status, "published");
   assert.equal(
     db().prepare("SELECT status FROM whatsapp_deliveries").get()!.status,
     "sent",
   );
-  save(e);
-  assert.equal(claimJob(), undefined);
-  processWhatsAppWebhook({
+  await save(e);
+  assert.equal(await claimJob(), undefined);
+  await processWhatsAppWebhook({
     object: "whatsapp_business_account",
     entry: [
       {
@@ -605,10 +605,10 @@ test("WhatsApp timeout quarantines that recipient; retry requires an explicit ch
     .run(
       JSON.stringify({ templates: { fr: { name: "test", language: "fr" } } }),
     );
-  processWhatsAppWebhook(webhook("JOIN NVO"));
-  save(post());
+  await processWhatsAppWebhook(webhook("JOIN NVO"));
+  await save(post());
   await processJob(
-    claimJob()!,
+    (await claimJob())!,
     (async () => {
       throw new Error("timeout");
     }) as typeof fetch,
@@ -619,8 +619,8 @@ test("WhatsApp timeout quarantines that recipient; retry requires an explicit ch
     db().prepare("SELECT status FROM whatsapp_deliveries").get()!.status,
     "needs_review",
   );
-  assert.throws(() => jobAction(rows()[0].id, "retry"));
-  jobAction(rows()[0].id, "retry", true);
+  await assert.rejects(jobAction(rows()[0].id, "retry"));
+  await jobAction(rows()[0].id, "retry", true);
   assert.equal(
     db().prepare("SELECT status FROM whatsapp_deliveries").get()!.status,
     "queued",

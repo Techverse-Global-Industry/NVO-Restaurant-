@@ -12,7 +12,7 @@ import {
   tiktokReadiness,
   account,
 } from "@/lib/social/accounts";
-import { connectionReadiness } from "@/lib/social/security";
+import { connectionReadiness, instagramReadiness } from "@/lib/social/security";
 import { aiReady, generateCaptions, payloadFor } from "@/lib/social/captions";
 import { getPlan, jobs, jobAction, socialKinds } from "@/lib/social/queue";
 import {
@@ -38,19 +38,20 @@ export async function GET(
     const u = await user(),
       { action } = await params;
     if (action === "dashboard") {
-      const heartbeat = db()
+      const heartbeat = await db()
         .prepare("SELECT heartbeat FROM social_worker WHERE id=1")
         .get() as { heartbeat: number } | undefined;
       return json({
-        accounts: accounts(),
+        accounts: await accounts(),
         pending: ["owner", "manager"].includes(u.role)
-          ? pendingAccounts(u.id)
+          ? await pendingAccounts(u.id)
           : [],
-        jobs: jobs(),
+        jobs: await jobs(),
         meta: connectionReadiness(),
+        instagram: instagramReadiness(),
         tiktok: tiktokReadiness(),
         whatsapp: whatsappReadiness(),
-        whatsappTemplates: Object.keys(whatsappConfig()?.templates || {}),
+        whatsappTemplates: Object.keys((await whatsappConfig())?.templates || {}),
         ai: aiReady(),
         manage: ["owner", "manager"].includes(u.role),
         worker: {
@@ -58,7 +59,7 @@ export async function GET(
           mode: process.env.SOCIAL_WORKER_MODE || "embedded",
         },
         subscribers: (
-          db()
+          await db()
             .prepare(
               "SELECT count(*) AS n FROM whatsapp_subscribers WHERE status='subscribed'",
             )
@@ -67,12 +68,12 @@ export async function GET(
       });
     }
     if (action === "plan")
-      return json({ plan: getPlan(req.nextUrl.searchParams.get("id") || "") });
+      return json({ plan: await getPlan(req.nextUrl.searchParams.get("id") || "") });
     if (action === "audience") {
       if (!["owner", "manager"].includes(u.role))
         throw new Error("Not authorized.");
       return json({
-        subscribers: db()
+        subscribers: await db()
           .prepare(
             "SELECT phone,name,status,consented_at,changed_at FROM whatsapp_subscribers ORDER BY changed_at DESC LIMIT 200",
           )
@@ -81,7 +82,7 @@ export async function GET(
     }
     if (action === "deliveries")
       return json({
-        deliveries: db()
+        deliveries: await db()
           .prepare(
             "SELECT '••••' || substr(phone,-4) AS recipient,status,attempts,last_error,updated_at FROM whatsapp_deliveries WHERE job_id=? ORDER BY updated_at DESC LIMIT 200",
           )
@@ -110,9 +111,9 @@ export async function POST(
     const raw = await req.text();
     if (raw.length > 65536) throw new Error("Request is too large.");
     const b = JSON.parse(raw);
-    limit(`social:${u.id}`, 90, 60000);
+    await limit(`social:${u.id}`, 90, 60000);
     if (action === "captions") {
-      limit(`captions:${u.id}`, b.ai ? 30 : 160, b.ai ? 3600000 : 60000);
+      await limit(`captions:${u.id}`, b.ai ? 30 : 160, b.ai ? 3600000 : 60000);
       const e = entrySchema.parse(b.entry);
       if (!socialKinds.includes(e.kind))
         throw new Error("Choose a story, event or special.");
@@ -123,7 +124,7 @@ export async function POST(
             e,
             language,
             b.ai ? "ai" : "standard",
-            settings(),
+            await settings(),
             process.env.SITE_URL || "http://localhost:3000",
           ),
           b.ai === true,
@@ -138,21 +139,21 @@ export async function POST(
           checked: z.boolean().optional(),
         })
         .parse(b);
-      jobAction(v.id, v.action, v.checked);
-      audit(u.id, `social-${v.action}`, v.id);
+      await jobAction(v.id, v.action, v.checked);
+      await audit(u.id, `social-${v.action}`, v.id);
       return json({ ok: true });
     }
     if (!["owner", "manager"].includes(u.role))
       throw new Error("Not authorized.");
     if (action === "connect") {
-      limit(`connect:${u.id}`, 10, 3600000);
-      const provider = z.enum(["meta", "tiktok", "whatsapp"]).parse(b.provider);
+      await limit(`connect:${u.id}`, 10, 3600000);
+      const provider = z.enum(["meta", "instagram", "tiktok", "whatsapp"]).parse(b.provider);
       if (provider === "whatsapp") {
         await connectWhatsApp();
-        audit(u.id, "social-connect", "whatsapp");
+        await audit(u.id, "social-connect", "whatsapp");
         return json({ ok: true });
       }
-      const result = beginConnection(u.id, provider);
+      const result = await beginConnection(u.id, provider);
       (await cookies()).set("nvo_social_oauth", result.cookie, {
         httpOnly: true,
         sameSite: "lax",
@@ -169,8 +170,8 @@ export async function POST(
           automatic: z.boolean(),
         })
         .parse(b);
-      selectAccounts(u.id, v.ids, v.automatic);
-      audit(u.id, "social-connect", v.ids.join(","));
+      await selectAccounts(u.id, v.ids, v.automatic);
+      await audit(u.id, "social-connect", v.ids.join(","));
       return json({ ok: true });
     }
     if (action === "account") {
@@ -181,34 +182,34 @@ export async function POST(
           enabled: z.boolean().optional(),
         })
         .parse(b);
-      const a = account(v.id);
+      const a = await account(v.id);
       if (!a) throw new Error("Account not found.");
       if (v.action === "automatic" && a.platform === "tiktok" && v.enabled)
         throw new Error(
           "Choose TikTok and confirm each upload in the post editor.",
         );
-      transaction(() => {
+      await transaction(async () => {
         const now = new Date().toISOString();
         if (v.action === "disconnect")
-          db()
+          await db()
             .prepare(
-              "UPDATE social_accounts SET status='disconnected',token='',auto_publish=0,updated_at=? WHERE id=?",
+              "UPDATE social_accounts SET status='disconnected',token='',auto_publish=false,updated_at=? WHERE id=?",
             )
             .run(now, a.id);
         else
-          db()
+          await db()
             .prepare(
               "UPDATE social_accounts SET auto_publish=?,updated_at=? WHERE id=?",
             )
-            .run(v.enabled ? 1 : 0, now, a.id);
+            .run(v.enabled === true, now, a.id);
         // Turning a default off must also stop unsent jobs created by that default.
         if (v.action === "disconnect" || !v.enabled)
-          db()
+          await db()
             .prepare(
               "UPDATE social_jobs SET status='cancelled',lease_owner=NULL,lease_until=NULL,updated_at=? WHERE account_id=? AND status IN ('queued','retry','preparing','failed','needs_auth') AND (?='disconnect' OR entry_id IN (SELECT entry_id FROM social_plans WHERE json_extract(data,'$.mode')='auto'))",
             )
             .run(now, a.id, v.action);
-        audit(u.id, `social-${v.action}`, a.id);
+        await audit(u.id, `social-${v.action}`, a.id);
       });
       return json({ ok: true });
     }
@@ -217,18 +218,18 @@ export async function POST(
         .string()
         .regex(/^\d{8,15}$/)
         .parse(b.phone);
-      transaction(() => {
-        db()
+      await transaction(async () => {
+        await db()
           .prepare(
             "UPDATE whatsapp_subscribers SET status='unsubscribed',changed_at=?,last_timestamp=? WHERE phone=?",
           )
           .run(new Date().toISOString(), Math.floor(Date.now() / 1000), phone);
-        db()
+        await db()
           .prepare(
             "UPDATE whatsapp_deliveries SET status='skipped',last_error='Unsubscribed by restaurant staff.' WHERE phone=? AND status IN ('queued','failed','needs_review')",
           )
           .run(phone);
-        audit(u.id, "whatsapp-unsubscribe", phone.slice(-4));
+        await audit(u.id, "whatsapp-unsubscribe", phone.slice(-4));
       });
       return json({ ok: true });
     }

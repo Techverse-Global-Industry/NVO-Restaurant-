@@ -17,7 +17,7 @@ export type Account = {
   token: string;
   expires_at: number | null;
   status: "connected" | "reconnect" | "disconnected";
-  auto_publish: number;
+  auto_publish: boolean | number;
   created_at: string;
   updated_at: string;
 };

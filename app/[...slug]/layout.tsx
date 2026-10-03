@@ -12,7 +12,8 @@ export default async function SectionLayout({
 }) {
   const { slug } = await params;
   const lang = await requestLanguage();
-  const data = publicCatalog(entries(), settings());
+  const [allEntries, currentSettings] = await Promise.all([entries(), settings()]);
+  const data = publicCatalog(allEntries, currentSettings);
   const kind = (
     {
       menu: "meals",

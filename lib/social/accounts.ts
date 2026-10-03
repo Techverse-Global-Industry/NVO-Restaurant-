@@ -1,6 +1,6 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { db, transaction } from "../db";
-import { graph, tiktok, tiktokToken } from "./providers";
+import { graph, instagramGraph, tiktok, tiktokToken } from "./providers";
 import {
   publicSite,
   metaVersion,
@@ -8,6 +8,7 @@ import {
   seal,
   unseal,
   connectionReadiness,
+  instagramReadiness,
 } from "./security";
 import type { Account, Platform, PublicAccount } from "./types";
 export type Candidate = {
@@ -23,18 +24,18 @@ type State = {
   cookie_hash: string;
   staff_id: string;
   expires_at: number;
-  consumed: number;
+  consumed: boolean | number;
   candidates: string | null;
 };
-export function accounts(): PublicAccount[] {
-  return db()
+export async function accounts(): Promise<PublicAccount[]> {
+  return await db()
     .prepare(
       "SELECT id,platform,remote_id,name,expires_at,status,auto_publish,created_at,updated_at FROM social_accounts ORDER BY platform,name",
     )
     .all() as PublicAccount[];
 }
-export function account(id: string) {
-  return db().prepare("SELECT * FROM social_accounts WHERE id=?").get(id) as
+export async function account(id: string) {
+  return await db().prepare("SELECT * FROM social_accounts WHERE id=?").get(id) as
     Account | undefined;
 }
 export function tiktokReadiness() {
@@ -51,17 +52,18 @@ export function tiktokReadiness() {
     reasons.push("The owner's TikTok app has not been configured.");
   return { ready: !reasons.length, reasons };
 }
-export function beginConnection(staffId: string, provider: "meta" | "tiktok") {
-  const ready = provider === "meta" ? connectionReadiness() : tiktokReadiness();
+export type ConnectionProvider = "meta" | "instagram" | "tiktok";
+export async function beginConnection(staffId: string, provider: ConnectionProvider) {
+  const ready = provider === "meta" ? connectionReadiness() : provider === "instagram" ? instagramReadiness() : tiktokReadiness();
   if (!ready.ready) throw new Error(ready.reasons.join(" "));
   const state = randomBytes(24).toString("hex"),
     cookie = randomBytes(24).toString("hex"),
     hashed = sha(state);
-  db()
+  await db()
     .prepare("DELETE FROM social_oauth WHERE expires_at<? OR staff_id=?")
     .run(Date.now(), staffId);
-  db()
-    .prepare("INSERT INTO social_oauth VALUES(?,?,?,?,0,?)")
+  await db()
+    .prepare("INSERT INTO social_oauth VALUES(?,?,?,?,false,?)")
     .run(
       hashed,
       sha(cookie),
@@ -73,7 +75,9 @@ export function beginConnection(staffId: string, provider: "meta" | "tiktok") {
   const url = new URL(
     provider === "meta"
       ? `https://www.facebook.com/${metaVersion()}/dialog/oauth`
-      : "https://www.tiktok.com/v2/auth/authorize/",
+      : provider === "instagram"
+        ? "https://www.instagram.com/oauth/authorize"
+        : "https://www.tiktok.com/v2/auth/authorize/",
   );
   url.search = new URLSearchParams({
     response_type: "code",
@@ -86,16 +90,23 @@ export function beginConnection(staffId: string, provider: "meta" | "tiktok") {
             "pages_show_list,pages_read_engagement,pages_manage_posts,instagram_basic,instagram_content_publish",
           auth_type: "rerequest",
         }
-      : {
-          client_key: process.env.TIKTOK_CLIENT_KEY!,
-          scope: "user.info.basic,video.upload",
-        }),
+      : provider === "instagram"
+        ? {
+            client_id: process.env.INSTAGRAM_APP_ID!,
+            scope: "instagram_business_basic,instagram_business_content_publish",
+            enable_fb_login: "0",
+            force_authentication: "1",
+          }
+        : {
+            client_key: process.env.TIKTOK_CLIENT_KEY!,
+            scope: "user.info.basic,video.upload",
+          }),
   }).toString();
   return { url: url.toString(), cookie };
 }
-export function consumeState(state: string, cookie: string, provider: string) {
-  return transaction(() => {
-    const row = db()
+export async function consumeState(state: string, cookie: string, provider: string) {
+  return transaction(async () => {
+    const row = await db()
       .prepare("SELECT * FROM social_oauth WHERE state=?")
       .get(sha(state)) as State | undefined;
     if (
@@ -108,14 +119,14 @@ export function consumeState(state: string, cookie: string, provider: string) {
       throw new Error(
         "Connection expired. Start again from the restaurant dashboard.",
       );
-    const staff = db()
+    const staff = await db()
       .prepare("SELECT role FROM staff WHERE id=?")
       .get(row.staff_id) as { role: string } | undefined;
     if (!staff || !["owner", "manager"].includes(staff.role))
       throw new Error("Only an owner or manager can connect accounts.");
-    db()
+    await db()
       .prepare(
-        "UPDATE social_oauth SET consumed=1,candidates=NULL WHERE state=?",
+        "UPDATE social_oauth SET consumed=true,candidates=NULL WHERE state=?",
       )
       .run(row.state);
     return row;
@@ -124,14 +135,73 @@ export function consumeState(state: string, cookie: string, provider: string) {
 export async function finishConnection(
   state: string,
   cookie: string,
-  provider: "meta" | "tiktok",
+  provider: ConnectionProvider,
   code: string,
   fetcher: typeof fetch = fetch,
 ) {
-  const row = consumeState(state, cookie, provider);
+  const row = await consumeState(state, cookie, provider);
   const callback = `${publicSite()}/api/social/callback/${provider}`;
   const candidates: Candidate[] = [];
-  if (provider === "meta") {
+  if (provider === "instagram") {
+    let short: any;
+    try {
+      const response = await fetcher(
+        "https://api.instagram.com/oauth/access_token",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            client_id: process.env.INSTAGRAM_APP_ID!,
+            client_secret: process.env.INSTAGRAM_APP_SECRET!,
+            grant_type: "authorization_code",
+            redirect_uri: callback,
+            code,
+          }),
+          signal: AbortSignal.timeout(25000),
+          cache: "no-store",
+        },
+      );
+      short = await response.json();
+      if (Array.isArray(short.data) && short.data.length === 1)
+        short = short.data[0];
+      if (!response.ok || !short.access_token || !short.user_id) throw new Error();
+    } catch {
+      throw new Error("Instagram authorization failed. Check the app setup and callback URL, then reconnect.");
+    }
+    let token: any;
+    try {
+      const url = new URL("https://graph.instagram.com/access_token");
+      url.search = new URLSearchParams({
+        grant_type: "ig_exchange_token",
+        client_secret: process.env.INSTAGRAM_APP_SECRET!,
+        access_token: short.access_token,
+      }).toString();
+      const response = await fetcher(url, {
+        signal: AbortSignal.timeout(25000),
+        cache: "no-store",
+      });
+      token = await response.json();
+      if (!response.ok || !token.access_token) throw new Error();
+    } catch {
+      throw new Error("Instagram could not issue a long-lived publishing token. Reconnect and try again.");
+    }
+    const profile = await instagramGraph(
+      "me",
+      token.access_token,
+      { fields: "user_id,username" },
+      "GET",
+      false,
+      fetcher,
+    );
+    if (!profile.user_id || String(profile.user_id) !== String(short.user_id))
+      throw new Error("Instagram returned an unexpected account. Reconnect the intended NVO account.");
+    candidates.push({
+      id: randomUUID(), platform: "instagram", remote_id: String(profile.user_id),
+      name: `@${profile.username || profile.user_id}`,
+      token: JSON.stringify({ mode: "instagram_login", access_token: token.access_token }),
+      expires_at: Number.isFinite(token.expires_in) ? Date.now() + token.expires_in * 1000 : null,
+    });
+  } else if (provider === "meta") {
     const short = await graph(
       "oauth/access_token",
       "",
@@ -236,9 +306,11 @@ export async function finishConnection(
   }
   if (!candidates.length)
     throw new Error(
-      "No eligible accounts found. Connect a Facebook Page with publishing access and a linked Instagram professional account.",
+      provider === "instagram"
+        ? "No eligible Instagram account was returned. Authorize an Instagram Business or Creator account with publishing access."
+        : "No eligible accounts found. Connect a Facebook Page with publishing access and a linked Instagram professional account.",
     );
-  db()
+  await db()
     .prepare("UPDATE social_oauth SET candidates=?,expires_at=? WHERE state=?")
     .run(
       seal(JSON.stringify(candidates), row.state),
@@ -246,10 +318,10 @@ export async function finishConnection(
       row.state,
     );
 }
-export function pendingAccounts(staffId: string) {
-  const row = db()
+export async function pendingAccounts(staffId: string) {
+  const row = await db()
     .prepare(
-      "SELECT * FROM social_oauth WHERE staff_id=? AND consumed=1 AND candidates IS NOT NULL AND expires_at>?",
+      "SELECT * FROM social_oauth WHERE staff_id=? AND consumed=true AND candidates IS NOT NULL AND expires_at>?",
     )
     .get(staffId, Date.now()) as State | undefined;
   if (!row) return [];
@@ -257,15 +329,15 @@ export function pendingAccounts(staffId: string) {
     ({ id, platform, remote_id, name }) => ({ id, platform, remote_id, name }),
   );
 }
-export function selectAccounts(
+export async function selectAccounts(
   staffId: string,
   ids: string[],
   automatic: boolean,
 ) {
-  transaction(() => {
-    const row = db()
+  return transaction(async () => {
+    const row = await db()
       .prepare(
-        "SELECT * FROM social_oauth WHERE staff_id=? AND consumed=1 AND candidates IS NOT NULL AND expires_at>?",
+        "SELECT * FROM social_oauth WHERE staff_id=? AND consumed=true AND candidates IS NOT NULL AND expires_at>?",
       )
       .get(staffId, Date.now()) as State | undefined;
     if (!row) throw new Error("Account selection expired. Connect again.");
@@ -275,14 +347,14 @@ export function selectAccounts(
     if (!ids.length || ids.some((id) => !candidates.some((c) => c.id === id)))
       throw new Error("Choose at least one account from the connection list.");
     for (const c of candidates.filter((c) => ids.includes(c.id))) {
-      const old = db()
+      const old = await db()
         .prepare(
           "SELECT id FROM social_accounts WHERE platform=? AND remote_id=?",
         )
         .get(c.platform, c.remote_id) as { id: string } | undefined;
       const id = old?.id || c.id,
         now = new Date().toISOString();
-      db()
+      await db()
         .prepare(
           "INSERT INTO social_accounts VALUES(?,?,?,?,?,?,'connected',?,?,?) ON CONFLICT(platform,remote_id) DO UPDATE SET name=excluded.name,token=excluded.token,expires_at=excluded.expires_at,status='connected',auto_publish=excluded.auto_publish,updated_at=excluded.updated_at",
         )
@@ -293,11 +365,11 @@ export function selectAccounts(
           c.name,
           seal(c.token, id),
           c.expires_at,
-          automatic && c.platform !== "tiktok" ? 1 : 0,
+          automatic && c.platform !== "tiktok",
           now,
           now,
         );
     }
-    db().prepare("DELETE FROM social_oauth WHERE state=?").run(row.state);
+    await db().prepare("DELETE FROM social_oauth WHERE state=?").run(row.state);
   });
 }

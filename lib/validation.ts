@@ -26,7 +26,10 @@ export const entrySchema = z
       .string()
       .max(500)
       .refine(
-        (v) => !v || /^\/(images|uploads)\/[a-zA-Z0-9._-]+$/.test(v),
+        (v) =>
+          !v ||
+          /^\/images\/[a-zA-Z0-9._-]+$/.test(v) ||
+          /^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/nvo-media\/uploads\/[a-f0-9-]+\.(jpg|png|webp)$/.test(v),
         "Use an uploaded image",
       )
       .optional(),

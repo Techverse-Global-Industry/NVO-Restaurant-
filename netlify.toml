@@ -1,0 +1,7 @@
+[build]
+  command = "npm run build"
+
+# Scheduled Functions run only for the published production deploy. Jobs are
+# leased in Postgres, so every minute is safe even if two invocations overlap.
+[functions."social-tick"]
+  schedule = "* * * * *"

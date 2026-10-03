@@ -1,10 +1,25 @@
 import type { NextConfig } from "next";
+const storageHost = (() => {
+  try {
+    const url = new URL(process.env.NVO_SUPABASE_URL || "");
+    return url.protocol === "https:" && url.hostname.endsWith(".supabase.co")
+      ? url.hostname
+      : null;
+  } catch {
+    return null;
+  }
+})();
 const config: NextConfig = {
   poweredByHeader: false,
-  images: { qualities: [60, 75] },
+  images: {
+    qualities: [60, 75],
+    remotePatterns: storageHost
+      ? [{ protocol: "https", hostname: storageHost, pathname: "/storage/v1/object/public/nvo-media/**" }]
+      : [],
+  },
   // Keep metadata in the initial HTML, including correct 404 and noindex output.
   htmlLimitedBots: /.*/,
-  serverExternalPackages: ["node:sqlite"],
+  serverExternalPackages: ["node:sqlite", "pg"],
   async headers() {
     return [
       {

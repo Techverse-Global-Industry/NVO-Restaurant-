@@ -1,13 +1,13 @@
 import { entry, settings, db } from "./db";
 import { isLive, visiblePrice } from "./catalog";
 import type { CartLine, Entry, Reward } from "./types";
-export function quote(lines: CartLine[], coupon = "", customerId = "") {
-  const s = settings();
+export async function quote(lines: CartLine[], coupon = "", customerId = "") {
+  const s = await settings();
   const seen = new Set<string>();
-  const items = lines.map((line) => {
+  const items = await Promise.all(lines.map(async (line) => {
     if (seen.has(line.id)) throw new Error("Duplicate meal in order.");
     seen.add(line.id);
-    const meal = entry(line.id);
+    const meal = await entry(line.id);
     if (
       !meal ||
       meal.kind !== "meals" ||
@@ -17,7 +17,7 @@ export function quote(lines: CartLine[], coupon = "", customerId = "") {
       throw new Error(
         "A selected meal is no longer available. Please refresh your menu.",
       );
-    const category = meal.category ? entry(meal.category) : undefined;
+    const category = meal.category ? await entry(meal.category) : undefined;
     if (category && !isLive(category))
       throw new Error("This menu category is unavailable.");
     if (
@@ -32,7 +32,7 @@ export function quote(lines: CartLine[], coupon = "", customerId = "") {
       quantity: line.quantity,
       price: visiblePrice(meal, s) ? (meal.price ?? null) : null,
     };
-  });
+  }));
   const pending = items.some((i) => i.price === null);
   const subtotal = items.reduce(
     (sum, i) => sum + (i.price ?? 0) * i.quantity,
@@ -42,7 +42,7 @@ export function quote(lines: CartLine[], coupon = "", customerId = "") {
   let reward: Reward | undefined;
   let terms: Entry | undefined;
   if (coupon) {
-    reward = db()
+    reward = await db()
       .prepare("SELECT * FROM rewards WHERE code=? AND customer_id=?")
       .get(coupon.toUpperCase(), customerId) as Reward | undefined;
     if (!reward || reward.status !== "claimed")

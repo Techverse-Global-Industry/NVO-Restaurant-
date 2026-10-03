@@ -45,8 +45,8 @@ export async function generateMetadata({
   const { slug } = await params;
   const lang = await requestLanguage();
   const fr = lang === "fr";
-  const s = settings();
-  const visible = publicCatalog(entries(), s).entries;
+  const [s, allEntries] = await Promise.all([settings(), entries()]);
+  const visible = publicCatalog(allEntries, s).entries;
   const item = slug[1]
     ? visible.find(
         (e) =>
@@ -206,7 +206,7 @@ export default async function Page({
             ? "specials"
             : "events";
     if (
-      !publicCatalog(entries(), settings()).entries.some(
+      !publicCatalog(await entries(), await settings()).entries.some(
         (e) => e.id === id && e.kind === kind,
       )
     )

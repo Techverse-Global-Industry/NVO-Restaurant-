@@ -4,8 +4,9 @@ import { publicCatalog } from "@/lib/catalog";
 import { absoluteUrl } from "@/lib/seo";
 import { languagePath } from "@/lib/i18n";
 export const dynamic = "force-dynamic";
-export default function sitemap(): MetadataRoute.Sitemap {
-  if (settings().previewContent) return [];
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const [currentSettings, allEntries] = await Promise.all([settings(), entries()]);
+  if (currentSettings.previewContent) return [];
   const paths = [
     "/",
     "/menu",
@@ -18,7 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/reservation",
     "/news",
     "/loyalty",
-    ...publicCatalog(entries(), settings())
+    ...publicCatalog(allEntries, currentSettings)
       .entries.filter(
         (e) =>
           !e.demo && ["meals", "posts", "events", "specials"].includes(e.kind),

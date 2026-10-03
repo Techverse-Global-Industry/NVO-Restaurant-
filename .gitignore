@@ -11,6 +11,7 @@ playwright-report/
 coverage/
 artifacts/
 .tools/
+supabase/.temp/
 *.tsbuildinfo
 *.log
 .DS_Store

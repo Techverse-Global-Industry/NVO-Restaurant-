@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
-import { mkdir, writeFile, readFile } from "node:fs/promises";
-import path from "node:path";
-import { unlinkSync, existsSync } from "node:fs";
 import { db, settings, entries, entry, transaction, audit } from "@/lib/db";
 import {
   staff,
@@ -41,18 +38,23 @@ import {
   recordActivity,
 } from "@/lib/analytics";
 import { queueEntry, cancelPending } from "@/lib/social/queue";
+import { deleteMedia, isUploadedMediaUrl, uploadMedia } from "@/lib/storage";
 import type { Staff, Entry, Reward } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const json = (data: unknown, status = 200) =>
   NextResponse.json(data, { status, headers: { "Cache-Control": "no-store" } });
+// Netlify's binary request limit is lower than the Storage bucket's 8 MB limit
+// because multipart bodies are base64 encoded by the function gateway.
+const maxUploadBytes = process.env.NETLIFY ? 4 * 1024 * 1024 : 8 * 1024 * 1024;
+const maxUploadLabel = process.env.NETLIFY ? "4 MB" : "8 MB";
 function permit(user: Staff | null, roles: string[]) {
   if (!user || !roles.includes(user.role)) throw new Error("Not authorized.");
 }
 const safeReward = publicReward;
 async function markStaffBrowser() {
-  excludeStaffVisitor((await customer(true))!);
+  await excludeStaffVisitor((await customer(true))!);
   (await cookies()).set("nvo_internal", "1", {
     httpOnly: true,
     sameSite: "lax",
@@ -81,21 +83,24 @@ export async function GET(
 ) {
   try {
     const route = (await params).path.join("/");
-    if (route === "catalog") return json(publicCatalog(entries(), settings()));
+    if (route === "catalog") {
+      const [allEntries, currentSettings] = await Promise.all([entries(), settings()]);
+      return json(publicCatalog(allEntries, currentSettings));
+    }
     if (route === "offers/availability")
       return json(
-        couponAvailability(await customer(), networkHash(req.headers)),
+        await couponAvailability(await customer(), await networkHash(req.headers)),
       );
     if (route === "wallet") {
       const id = await customer();
       return json(
         id
           ? (
-              db()
+              await db()
                 .prepare(
                   "SELECT * FROM rewards WHERE customer_id=? ORDER BY claimed_at DESC",
                 )
-                .all(id) as unknown as Reward[]
+                .all<Reward>(id)
             ).map(safeReward)
           : [],
       );
@@ -115,45 +120,45 @@ export async function GET(
       const r = user!.role;
       const content = ["owner", "manager", "content"].includes(r);
       const operations = ["owner", "manager", "service"].includes(r);
-      const activity = activityReport();
+      const activity = await activityReport();
       const { counts, trend } = activity;
       return json({
         user,
-        settings: r === "owner" ? settings() : null,
-        entries: content ? entries() : [],
+        settings: r === "owner" ? await settings() : null,
+        entries: content ? await entries() : [],
         orders: operations
-          ? db()
+          ? await db()
               .prepare(
                 "SELECT * FROM orders ORDER BY created_at DESC LIMIT 200",
               )
               .all()
           : [],
         reservations: operations
-          ? db()
+          ? await db()
               .prepare(
                 "SELECT * FROM reservations ORDER BY created_at DESC LIMIT 200",
               )
               .all()
           : [],
         media: content
-          ? db().prepare("SELECT * FROM media ORDER BY created_at DESC").all()
+          ? await db().prepare("SELECT * FROM media ORDER BY created_at DESC").all()
           : [],
         counts,
         trend,
         activity,
         confirmed: (
-          db()
+          await db()
             .prepare(
               "SELECT count(*) AS n FROM orders WHERE status='fulfilled_paid'",
             )
-            .get() as { n: number }
+            .get<{ n: number }>()
         ).n,
         staff:
           r === "owner"
-            ? db().prepare("SELECT id,email,role FROM staff").all()
+            ? await db().prepare("SELECT id,email,role FROM staff").all()
             : [],
         rewards: operations
-          ? db()
+          ? await db()
               .prepare(
                 "SELECT id,code,title,status,claimed_at,claimant_name,saved_at,order_id,active_at,expires_at FROM rewards ORDER BY claimed_at DESC LIMIT 200",
               )
@@ -180,12 +185,12 @@ export async function POST(
     if (route === "admin/upload") {
       const user = await staff();
       permit(user, ["owner", "manager", "content"]);
-      if (Number(req.headers.get("content-length") || 0) > 8 * 1024 * 1024)
-        throw new Error("Images must be smaller than 8 MB.");
+      if (Number(req.headers.get("content-length") || 0) > maxUploadBytes)
+        throw new Error(`Images must be smaller than ${maxUploadLabel}.`);
       const form = await req.formData();
       const file = form.get("file");
-      if (!(file instanceof File) || file.size > 8 * 1024 * 1024)
-        throw new Error("Choose an image under 8 MB.");
+      if (!(file instanceof File) || file.size > maxUploadBytes)
+        throw new Error(`Choose an image under ${maxUploadLabel}.`);
       const bytes = Buffer.from(await file.arrayBuffer());
       const ext =
         bytes[0] === 255 && bytes[1] === 216
@@ -202,13 +207,15 @@ export async function POST(
         throw new Error("Only JPEG, PNG and WebP images are supported.");
       const id = randomUUID(),
         name = `${id}.${ext}`;
-      await mkdir("data/uploads", { recursive: true });
-      await writeFile(path.join("data/uploads", name), bytes);
-      const url = `/uploads/${name}`;
-      db()
+      const url = await uploadMedia(
+        `uploads/${name}`,
+        bytes,
+        ext === "jpg" ? "image/jpeg" : ext === "png" ? "image/png" : "image/webp",
+      );
+      await db()
         .prepare("INSERT INTO media VALUES(?,?,?,?)")
         .run(id, file.name.slice(0, 200), url, new Date().toISOString());
-      audit(user!.id, "upload", id);
+      await audit(user!.id, "upload", id);
       return json({ url });
     }
     const b = await body(req);
@@ -218,10 +225,10 @@ export async function POST(
         .toLowerCase();
       const password = String(b.password || "");
       if (password.length > 200) throw new Error("Invalid login.");
-      limit("login:" + digest(email), 8, 15 * 60000);
-      const user = db()
+      await limit("login:" + digest(email), 8, 15 * 60000);
+      const user = await db()
         .prepare("SELECT * FROM staff WHERE email=?")
-        .get(email) as (Staff & { password: string }) | undefined;
+        .get<Staff & { password: string }>(email);
       if (!user || !verifyPassword(password, user.password))
         return json({ error: "Email or password is incorrect." }, 401);
       await login(user.id);
@@ -236,15 +243,15 @@ export async function POST(
       const user = await staff();
       if (route === "admin/media/delete") {
         permit(user, ["owner", "manager", "content"]);
-        transaction(() => {
-          const media = db()
+        await transaction(async () => {
+          const media = await db()
             .prepare("SELECT id,url FROM media WHERE id=?")
-            .get(String(b.id)) as { id: string; url: string } | undefined;
+            .get<{ id: string; url: string }>(String(b.id));
           if (!media)
             throw new Error("This photo is no longer in the library.");
-          const uses = entries().filter((e) => e.image === media.url);
+          const uses = (await entries()).filter((e) => e.image === media.url);
           if (
-            db()
+            await db()
               .prepare(
                 "SELECT id FROM social_jobs WHERE json_extract(payload,'$.entry.image')=? AND status IN ('queued','preparing','retry','publishing','processing','inbox','needs_review') LIMIT 1",
               )
@@ -262,27 +269,23 @@ export async function POST(
                   ", ",
                 )}. Replace or remove the photo on those items first, including hidden drafts.`,
             );
-          if (!/^\/uploads\/[a-f0-9-]+\.(jpg|png|webp)$/.test(media.url))
+          if (!isUploadedMediaUrl(media.url))
             throw new Error(
               "This is a built-in design image. Only uploaded photos can be deleted here.",
             );
-          const folder = path.resolve(process.cwd(), "data/uploads");
-          const file = path.resolve(folder, path.basename(media.url));
-          if (path.dirname(file) !== folder)
-            throw new Error("Invalid upload path.");
-          if (existsSync(file)) unlinkSync(file);
-          db().prepare("DELETE FROM media WHERE id=?").run(media.id);
-          audit(user!.id, "delete-media", media.id);
+          await deleteMedia(media.url);
+          await db().prepare("DELETE FROM media WHERE id=?").run(media.id);
+          await audit(user!.id, "delete-media", media.id);
         });
         return json({ ok: true });
       }
       if (route === "admin/settings") {
         permit(user, ["owner"]);
         const data = settingsSchema.parse(b);
-        db()
+        await db()
           .prepare("UPDATE settings SET data=? WHERE id=1")
           .run(JSON.stringify(data));
-        audit(user!.id, "settings", "restaurant");
+        await audit(user!.id, "settings", "restaurant");
         return json({ ok: true });
       }
       if (route === "admin/entry") {
@@ -293,29 +296,30 @@ export async function POST(
             ? ["owner", "manager"]
             : ["owner", "manager", "content"],
         );
-        const existing = entry(data.id);
+        const existing = await entry(data.id);
         if (
-          data.image?.startsWith("/uploads/") &&
-          !db().prepare("SELECT id FROM media WHERE url=?").get(data.image)
+          data.image &&
+          !data.image.startsWith("/images/") &&
+          !(await db().prepare("SELECT id FROM media WHERE url=?").get(data.image))
         )
           throw new Error(
             "This uploaded photo was deleted. Choose another photo before saving.",
           );
         if (existing && existing.kind !== data.kind)
           throw new Error("Content type cannot be changed.");
-        transaction(() => {
-          db()
+        await transaction(async () => {
+          await db()
             .prepare(
               "INSERT INTO entries VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET kind=excluded.kind,data=excluded.data",
             )
             .run(data.id, data.kind, JSON.stringify(data));
-          queueEntry(data, b.social);
-          audit(user!.id, "save", data.id);
+          await queueEntry(data, b.social);
+          await audit(user!.id, "save", data.id);
         });
         return json({ ok: true });
       }
       if (route === "admin/delete") {
-        const target = entry(String(b.id));
+        const target = await entry(String(b.id));
         permit(
           user,
           target?.kind === "campaigns"
@@ -324,15 +328,15 @@ export async function POST(
         );
         if (!target) throw new Error("Item not found.");
         // Archive to preserve historical references and previously issued offer terms.
-        transaction(() => {
-          db()
+        await transaction(async () => {
+          await db()
             .prepare("UPDATE entries SET data=? WHERE id=?")
             .run(
               JSON.stringify({ ...target, active: false, status: "draft" }),
               target.id,
             );
-          cancelPending(target.id);
-          audit(user!.id, "archive", target.id);
+          await cancelPending(target.id);
+          await audit(user!.id, "archive", target.id);
         });
         return json({ ok: true });
       }
@@ -345,11 +349,10 @@ export async function POST(
           "cancelled",
         ];
         if (!allowed.includes(b.status)) throw new Error("Invalid status.");
-        transaction(() => {
-          const order = db()
+        await transaction(async () => {
+          const order = await db()
             .prepare("SELECT * FROM orders WHERE id=?")
-            .get(String(b.id)) as
-            { id: string; status: string; data: string } | undefined;
+            .get<{ id: string; status: string; data: string }>(String(b.id));
           if (!order) throw new Error("Order not found.");
           if (order.status === "cancelled")
             throw new Error(
@@ -368,30 +371,30 @@ export async function POST(
               "This request needs a confirmed quote. Record the final agreed amount first.",
             );
           if (b.status === "fulfilled_paid" && data.rewardId) {
-            const reward = db()
+            const reward = await db()
               .prepare("SELECT * FROM rewards WHERE id=?")
-              .get(data.rewardId) as unknown as Reward;
+              .get<Reward>(data.rewardId);
             if (
               reward &&
               reward.status === "held" &&
               reward.order_id === order.id
             )
-              db()
+              await db()
                 .prepare("UPDATE rewards SET status='redeemed' WHERE id=?")
                 .run(reward.id);
             else if (order.status !== "fulfilled_paid")
               throw new Error("Coupon hold is no longer valid.");
           }
           if (b.status === "cancelled")
-            db()
+            await db()
               .prepare(
                 "UPDATE rewards SET status='claimed',order_id=NULL WHERE order_id=? AND status='held'",
               )
               .run(order.id);
-          db()
+          await db()
             .prepare("UPDATE orders SET status=? WHERE id=?")
             .run(b.status, order.id);
-          audit(user!.id, "order:" + b.status, order.id);
+          await audit(user!.id, "order:" + b.status, order.id);
         });
         return json({ ok: true });
       }
@@ -399,9 +402,9 @@ export async function POST(
         permit(user, ["owner", "manager", "service"]);
         if (!Number.isInteger(b.total) || b.total < 0 || b.total > 10000000)
           throw new Error("Enter the agreed total in whole FCFA.");
-        const order = db()
+        const order = await db()
           .prepare("SELECT data,status FROM orders WHERE id=?")
-          .get(String(b.id)) as { data: string; status: string } | undefined;
+          .get<{ data: string; status: string }>(String(b.id));
         if (!order || ["fulfilled_paid", "cancelled"].includes(order.status))
           throw new Error("This order cannot be quoted.");
         const data = JSON.parse(order.data);
@@ -410,7 +413,7 @@ export async function POST(
           throw new Error(
             "Review the coupon conditions before confirming the quote.",
           );
-        db()
+        await db()
           .prepare("UPDATE orders SET data=? WHERE id=?")
           .run(
             JSON.stringify({
@@ -423,22 +426,22 @@ export async function POST(
             }),
             b.id,
           );
-        audit(user!.id, "quote", b.id);
+        await audit(user!.id, "quote", b.id);
         return json({ ok: true });
       }
       if (route === "admin/reservation") {
         permit(user, ["owner", "manager", "service"]);
         if (!["requested", "confirmed", "cancelled"].includes(b.status))
           throw new Error("Invalid status");
-        db()
+        await db()
           .prepare("UPDATE reservations SET status=? WHERE id=?")
           .run(b.status, String(b.id));
-        audit(user!.id, "reservation:" + b.status, String(b.id));
+        await audit(user!.id, "reservation:" + b.status, String(b.id));
         return json({ ok: true });
       }
       if (route === "admin/translate") {
         permit(user, ["owner", "manager", "content"]);
-        limit("translate:" + user!.id, 60);
+        await limit("translate:" + user!.id, 60);
         if (
           !["en", "fr"].includes(b.from) ||
           typeof b.text !== "string" ||
@@ -449,21 +452,21 @@ export async function POST(
       }
       if (route === "admin/coupon") {
         permit(user, ["owner", "manager", "service"]);
-        const reward = lookupCoupon(String(b.code || ""));
-        const receipt = db()
+        const reward = await lookupCoupon(String(b.code || ""));
+        const receipt = await db()
           .prepare("SELECT data FROM counter_sales WHERE reward_id=?")
-          .get(reward.id) as { data: string } | undefined;
+          .get<{ data: string }>(reward.id);
         return json({
           reward: publicReward(reward),
           receipt: receipt ? JSON.parse(receipt.data) : null,
-          meals: entries()
+          meals: (await entries())
             .filter((e) => e.kind === "meals")
             .map((e) => ({ id: e.id, title: e.title, price: e.price })),
         });
       }
       if (route === "admin/coupon-quote") {
         permit(user, ["owner", "manager", "service"]);
-        const q = counterQuote(b);
+        const q = await counterQuote(b);
         return json({
           subtotal: q.subtotal,
           discount: q.discount,
@@ -472,7 +475,7 @@ export async function POST(
       }
       if (route === "admin/redeem") {
         permit(user, ["owner", "manager", "service"]);
-        return json({ ok: true, receipt: redeemCounter(b, user!.id) });
+        return json({ ok: true, receipt: await redeemCounter(b, user!.id) });
       }
       return json({ error: "This integration is not connected." }, 501);
     }
@@ -484,15 +487,16 @@ export async function POST(
         b.consent !== true ||
         collectionBlocked(
           req.headers.get("host") || "",
-          settings().previewContent,
+          (await settings()).previewContent,
           req.headers.get("user-agent") || "",
           !!user || jar.get("nvo_internal")?.value === "1",
         )
       )
         return json({ ok: true, recorded: false });
       const visitor = (await customer(true))!;
-      limit("analytics:" + visitor, 120);
-      const catalogue = publicCatalog(entries(), settings()).entries;
+      await limit("analytics:" + visitor, 120);
+      const [allEntries, currentSettings] = await Promise.all([entries(), settings()]);
+      const catalogue = publicCatalog(allEntries, currentSettings).entries;
       const pages = new Set([
         "/",
         "/menu",
@@ -526,7 +530,7 @@ export async function POST(
       }
       return json({
         ok: true,
-        recorded: recordActivity(
+        recorded: await recordActivity(
           visitor,
           b,
           pages,
@@ -535,27 +539,26 @@ export async function POST(
       });
     }
     const id = (await customer(true))!;
-    limit("public:" + id, 60);
+    await limit("public:" + id, 60);
     if (route === "quote") {
       const lines = orderSchema.shape.lines.parse(b.lines);
-      return json(quote(lines, String(b.coupon || ""), id));
+      return json(await quote(lines, String(b.coupon || ""), id));
     }
     if (route === "order") {
-      limit("order:" + id, 10, 3600000);
+      await limit("order:" + id, 10, 3600000);
       const input = orderSchema.parse(b);
-      const result = transaction(() => {
-        const previous = db()
+      const result = await transaction(async () => {
+        const previous = await db()
           .prepare("SELECT id,data,customer_id FROM orders WHERE request_key=?")
-          .get(input.requestKey) as
-          { id: string; data: string; customer_id: string } | undefined;
+          .get<{ id: string; data: string; customer_id: string }>(input.requestKey);
         if (previous) {
           if (previous.customer_id !== id) throw new Error("Invalid request.");
           return { id: previous.id, ...JSON.parse(previous.data) };
         }
-        const q = quote(input.lines, input.coupon, id);
+        const q = await quote(input.lines, input.coupon, id);
         const orderId = "NVO-" + randomUUID().slice(0, 8).toUpperCase();
         const data = { ...input, ...q };
-        db()
+        await db()
           .prepare("INSERT INTO orders VALUES(?,?,?,?,?,?)")
           .run(
             orderId,
@@ -566,7 +569,7 @@ export async function POST(
             input.requestKey,
           );
         if (q.rewardId)
-          db()
+          await db()
             .prepare(
               "UPDATE rewards SET status='held',order_id=? WHERE id=? AND status='claimed'",
             )
@@ -576,46 +579,46 @@ export async function POST(
       const message = `Hello NVO! / Bonjour NVO !\nOrder / Commande: ${result.id}\n${result.items.map((i: { quantity: number; title: string; price: number | null }) => `${i.quantity} × ${i.title}${i.price === null ? " — price to confirm / prix à confirmer" : " — " + money(i.price * i.quantity)}`).join("\n")}\n${result.pending ? "Total: to be confirmed / à confirmer" : "Food total / Total repas: " + money(result.total)}\n${result.method === "delivery" ? "Delivery fee to confirm / Frais de livraison à confirmer\n" : ""}Name / Nom: ${result.name}\nPhone / Téléphone: ${result.phone}\n${result.method}\n${result.address}\n${result.coupon ? "Coupon: " + result.coupon + "\n" : ""}${result.notes}\nPlease confirm availability and my order. / Merci de confirmer ma commande.`;
       return json({
         id: result.id,
-        url: `https://wa.me/${settings().whatsapp}?text=${encodeURIComponent(message)}`,
+        url: `https://wa.me/${(await settings()).whatsapp}?text=${encodeURIComponent(message)}`,
       });
     }
     if (route === "reservation") {
-      limit("reservation:" + id, 5, 3600000);
+      await limit("reservation:" + id, 5, 3600000);
       const data = reservationSchema.parse(b);
       if (Date.parse(`${data.date}T${data.time}:00+01:00`) <= Date.now())
         throw new Error("Please choose a future date and time.");
       const ref = "RES-" + randomUUID().slice(0, 8).toUpperCase();
-      db()
+      await db()
         .prepare("INSERT INTO reservations VALUES(?,?,?,?)")
         .run(ref, JSON.stringify(data), "requested", new Date().toISOString());
       const message = `Bonjour NVO / Hello NVO\nReservation request: ${ref}\n${data.name}\n${data.phone}\n${data.date} · ${data.time}\n${data.guests} guests / personnes\n${data.message}\nPlease confirm / Merci de confirmer.`;
       return json({
         id: ref,
-        url: `https://wa.me/${settings().whatsapp}?text=${encodeURIComponent(message)}`,
+        url: `https://wa.me/${(await settings()).whatsapp}?text=${encodeURIComponent(message)}`,
       });
     }
     if (route === "reward/saved") {
-      const reward = db()
+      const reward = await db()
         .prepare("SELECT id FROM rewards WHERE id=? AND customer_id=?")
         .get(String(b.id), id);
       if (!reward) throw new Error("Coupon not found in your wallet.");
-      db()
+      await db()
         .prepare("UPDATE rewards SET saved_at=? WHERE id=?")
         .run(new Date().toISOString(), String(b.id));
       return json({ ok: true });
     }
     if (route === "reward/name")
       return json(
-        nameLegacyCoupon(String(b.id), id, b.name, networkHash(req.headers)),
+        await nameLegacyCoupon(String(b.id), id, b.name, await networkHash(req.headers)),
       );
     if (route === "claim") {
       const name = claimantName.parse(b.name);
-      const network = networkHash(req.headers);
-      limit("claim-network:" + network, 12, 3600000);
-      limit("claim:" + id, 10, 3600000);
+      const network = await networkHash(req.headers);
+      await limit("claim-network:" + network, 12, 3600000);
+      await limit("claim:" + id, 10, 3600000);
       return json(
         safeReward(
-          claim(
+          await claim(
             String(b.campaignId),
             id,
             b.referralId ? String(b.referralId) : undefined,
@@ -625,39 +628,40 @@ export async function POST(
       );
     }
     if (route === "referral") {
-      if (!settings().referralEnabled)
+      if (!(await settings()).referralEnabled)
         throw new Error("Referrals are not active yet.");
-      const existing = db()
+      const existing = await db()
         .prepare("SELECT id FROM referrals WHERE customer_id=?")
-        .get(id) as { id: string } | undefined;
+        .get<{ id: string }>(id);
       const ref = existing?.id || randomUUID().replaceAll("-", "");
       if (!existing)
-        db()
+        await db()
           .prepare("INSERT INTO referrals VALUES(?,?,?)")
           .run(ref, id, new Date().toISOString());
       return json({ code: ref });
     }
     if (route === "referral/visit") {
-      const ref = db()
+      const ref = await db()
         .prepare("SELECT * FROM referrals WHERE id=?")
-        .get(String(b.code)) as { customer_id: string } | undefined;
-      if (!ref || ref.customer_id === id || !settings().referralEnabled)
+        .get<{ customer_id: string }>(String(b.code));
+      const currentSettings = await settings();
+      if (!ref || ref.customer_id === id || !currentSettings.referralEnabled)
         throw new Error(
           "This referral link is not available for this visitor.",
         );
-      db()
+      await db()
         .prepare("INSERT OR IGNORE INTO referral_visits VALUES(?,?,?)")
         .run(String(b.code), id, new Date().toISOString());
-      const visit = db()
+      const visit = await db()
         .prepare(
           "SELECT opened_at FROM referral_visits WHERE referral_id=? AND customer_id=?",
         )
-        .get(String(b.code), id) as { opened_at: string };
+        .get<{ opened_at: string }>(String(b.code), id);
       return json({
         expiresAt: new Date(
-          Date.parse(visit.opened_at) + settings().referralClaimMinutes * 60000,
+          Date.parse(visit!.opened_at) + currentSettings.referralClaimMinutes * 60000,
         ).toISOString(),
-        campaignId: settings().referralCampaign,
+        campaignId: currentSettings.referralCampaign,
       });
     }
     return json({ error: "Not found" }, 404);

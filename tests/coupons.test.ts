@@ -17,18 +17,18 @@ import { captionLimits } from "../lib/social/types";
 import type { Entry } from "../lib/types";
 process.env.NVO_DB_PATH = ":memory:";
 process.env.ADMIN_PASSWORD = "";
-test("older coupons accept their owner's name once without changing the issued code", () => {
+test("older coupons accept their owner's name once without changing the issued code", async () => {
   const e = campaign();
-  const old = claim(e.id, "legacy-owner");
-  assert.throws(
-    () => nameLegacyCoupon(old.id, "another-browser", "Other Guest", "ip"),
+  const old = await claim(e.id, "legacy-owner");
+  await assert.rejects(
+    nameLegacyCoupon(old.id, "another-browser", "Other Guest", "ip"),
     /wallet/,
   );
-  const named = nameLegacyCoupon(old.id, "legacy-owner", "Legacy Guest", "ip");
+  const named = await nameLegacyCoupon(old.id, "legacy-owner", "Legacy Guest", "ip");
   assert.equal(named.code, old.code);
   assert.equal(named.claimant_name, "Legacy Guest");
-  assert.throws(
-    () => nameLegacyCoupon(old.id, "legacy-owner", "Changed Name", "ip"),
+  await assert.rejects(
+    nameLegacyCoupon(old.id, "legacy-owner", "Changed Name", "ip"),
     /registered name/,
   );
 });
@@ -54,17 +54,16 @@ function campaign(extra: Partial<Entry> = {}) {
     .run(e.id, e.kind, JSON.stringify(e));
   return e;
 }
-test("one IP cannot claim again with a new browser, but another IP can claim", () => {
+test("one IP cannot claim again with a new browser, but another IP can claim", async () => {
   const e = campaign();
-  const r = claim(e.id, "browser-one", undefined, {
+  const r = await claim(e.id, "browser-one", undefined, {
     name: "Ada Guest",
     network: "network-one",
   });
   assert.equal(r.claimant_name, "Ada Guest");
   assert.ok(r.claimed_at);
   assert.match(r.code, /^NVO-[A-F0-9]{10}$/);
-  assert.throws(
-    () =>
+  await assert.rejects(
       claim(e.id, "new-browser", undefined, {
         name: "New Name",
         network: "network-one",
@@ -72,17 +71,17 @@ test("one IP cannot claim again with a new browser, but another IP can claim", (
     /network/,
   );
   assert.ok(
-    claim(e.id, "browser-two", undefined, {
+    await claim(e.id, "browser-two", undefined, {
       name: "Other Guest",
       network: "network-two",
     }),
   );
   assert.equal(
-    couponAvailability(null, "network-one").find((x) => x.id === e.id)?.claimed,
+    (await couponAvailability(null, "network-one")).find((x) => x.id === e.id)?.claimed,
     true,
   );
   assert.equal(
-    couponAvailability(null, "network-three").find((x) => x.id === e.id)
+    (await couponAvailability(null, "network-three")).find((x) => x.id === e.id)
       ?.remaining,
     0,
   );
@@ -90,12 +89,11 @@ test("one IP cannot claim again with a new browser, but another IP can claim", (
     .prepare("UPDATE entries SET data=? WHERE id=?")
     .run(JSON.stringify({ ...e, claimLimit: 3 }), e.id);
   assert.equal(
-    couponAvailability(null, "network-three").find((x) => x.id === e.id)
+    (await couponAvailability(null, "network-three")).find((x) => x.id === e.id)
       ?.remaining,
     1,
   );
-  assert.throws(
-    () =>
+  await assert.rejects(
       claim(e.id, "new-browser", undefined, {
         name: "Ada Again",
         network: "network-one",
@@ -103,7 +101,7 @@ test("one IP cannot claim again with a new browser, but another IP can claim", (
     /network/,
   );
   assert.ok(
-    claim(e.id, "browser-three", undefined, {
+    await claim(e.id, "browser-three", undefined, {
       name: "Third Guest",
       network: "network-three",
     }),
@@ -111,10 +109,10 @@ test("one IP cannot claim again with a new browser, but another IP can claim", (
   assert.ok(!("network_hash" in publicReward(r)));
   assert.ok(!("customer_id" in publicReward(r)));
 });
-test("untrusted forwarded IPs fail; signed addresses produce stable private hashes", () => {
+test("untrusted forwarded IPs fail; signed addresses produce stable private hashes", async () => {
   process.env.NVO_INTERNAL_IP_KEY = "test-key";
-  assert.throws(
-    () => networkHash(new Headers({ "x-forwarded-for": "1.2.3.4" })),
+  await assert.rejects(
+    networkHash(new Headers({ "x-forwarded-for": "1.2.3.4" })),
     /unavailable/,
   );
   const headers = new Headers({
@@ -123,16 +121,16 @@ test("untrusted forwarded IPs fail; signed addresses produce stable private hash
       .update("192.0.2.1")
       .digest("hex"),
   });
-  const hash = networkHash(headers);
+  const hash = await networkHash(headers);
   assert.equal(hash.length, 64);
-  assert.equal(hash, networkHash(headers));
+  assert.equal(hash, await networkHash(headers));
   assert.notEqual(hash, "192.0.2.1");
   headers.set("x-nvo-client-ip", "192.0.2.2");
-  assert.throws(() => networkHash(headers), /verification/);
+  await assert.rejects(networkHash(headers), /verification/);
 });
-test("counter redemption validates name, payment, minimum spend, discount cap and single use", () => {
+test("counter redemption validates name, payment, minimum spend, discount cap and single use", async () => {
   const e = campaign();
-  const r = claim(e.id, "walkin", undefined, {
+  const r = await claim(e.id, "walkin", undefined, {
     name: "Amina Guest",
     network: "walkin",
   });
@@ -146,27 +144,26 @@ test("counter redemption validates name, payment, minimum spend, discount cap an
     paid: true,
     items: [{ name: "Lunch", quantity: 2, unitPrice: 5000 }],
   };
-  assert.throws(
-    () => counterQuote({ ...sale, name: "Different Person" }),
+  await assert.rejects(
+    counterQuote({ ...sale, name: "Different Person" }),
     /name/,
   );
-  assert.throws(() => counterQuote({ ...sale, paid: false }), /payment/);
-  assert.throws(
-    () =>
+  await assert.rejects(counterQuote({ ...sale, paid: false }), /payment/);
+  await assert.rejects(
       counterQuote({
         ...sale,
         items: [{ name: "Snack", quantity: 1, unitPrice: 1000 }],
       }),
     /Minimum/,
   );
-  assert.equal(counterQuote(sale).discount, 700);
+  assert.equal((await counterQuote(sale)).discount, 700);
   db()
     .prepare("UPDATE entries SET data=? WHERE id=?")
     .run(JSON.stringify({ ...e, discountValue: 90 }), e.id);
-  const receipt = redeemCounter(sale, staffId);
+  const receipt = await redeemCounter(sale, staffId);
   assert.match(receipt.id, /^NVO-SALE-/);
   assert.equal(receipt.total, 9300);
-  assert.throws(() => redeemCounter(sale, staffId), /already/);
+  await assert.rejects(redeemCounter(sale, staffId), /already/);
   assert.equal(
     (
       db()
@@ -176,14 +173,14 @@ test("counter redemption validates name, payment, minimum spend, discount cap an
     1,
   );
 });
-test("free-dish coupons require the matching receipt item; inactive and held cards cannot redeem", () => {
+test("free-dish coupons require the matching receipt item; inactive and held cards cannot redeem", async () => {
   const e = campaign({
     discountType: "free",
     rewardItem: "banga",
     minOrder: 0,
     maxDiscount: undefined,
   });
-  const r = claim(e.id, "free", undefined, {
+  const r = await claim(e.id, "free", undefined, {
     name: "Free Guest",
     network: "free",
   });
@@ -193,9 +190,8 @@ test("free-dish coupons require the matching receipt item; inactive and held car
     paid: true,
     items: [{ name: "Soup", mealId: "banga", quantity: 2, unitPrice: 4500 }],
   };
-  assert.equal(counterQuote(sale).discount, 4500);
-  assert.throws(
-    () =>
+  assert.equal((await counterQuote(sale)).discount, 4500);
+  await assert.rejects(
       counterQuote({
         ...sale,
         items: [{ name: "Rice", mealId: "rice", quantity: 1, unitPrice: 4500 }],
@@ -203,11 +199,11 @@ test("free-dish coupons require the matching receipt item; inactive and held car
     /free dish/,
   );
   db().prepare("UPDATE rewards SET status='held' WHERE id=?").run(r.id);
-  assert.throws(() => counterQuote(sale), /website order/);
+  await assert.rejects(counterQuote(sale), /website order/);
   db()
     .prepare("UPDATE rewards SET status='claimed',active_at=? WHERE id=?")
     .run(new Date(Date.now() + 86400000).toISOString(), r.id);
-  assert.throws(() => counterQuote(sale), /not active/);
+  await assert.rejects(counterQuote(sale), /not active/);
   assert.equal(claimantName.safeParse("<script>").success, false);
 });
 test("captions are distinct, bilingual and fit every platform without removing an advertised offer restriction", () => {

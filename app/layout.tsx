@@ -30,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description,
     metadataBase: new URL(siteOrigin()),
-    robots: settings().previewContent
+    robots: (await settings()).previewContent
       ? { index: false, follow: true }
       : { index: true, follow: true },
     applicationName: "NVO Restaurant",
@@ -66,7 +66,8 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const data = publicCatalog(entries(), settings());
+  const [allEntries, currentSettings] = await Promise.all([entries(), settings()]);
+  const data = publicCatalog(allEntries, currentSettings);
   const lang = await requestLanguage();
   return (
     <html lang={lang}>

@@ -76,6 +76,7 @@ type Dashboard = {
   }[];
   jobs: SocialJob[];
   meta: Readiness;
+  instagram: Readiness;
   tiktok: Readiness;
   whatsapp: Readiness;
   whatsappTemplates: string[];
@@ -320,8 +321,10 @@ export function SocialStudio({
                 (a) => a.platform === p && a.status !== "disconnected",
               );
               const setup =
-                p === "facebook" || p === "instagram"
+                p === "facebook"
                   ? data.meta
+                  : p === "instagram"
+                    ? data.instagram
                   : p === "tiktok"
                     ? data.tiktok
                     : data.whatsapp;
@@ -335,7 +338,7 @@ export function SocialStudio({
                     {p === "facebook"
                       ? "Photo stories with a useful caption and a link back to NVO."
                       : p === "instagram"
-                        ? "Appetising photo posts, a shorter caption and focused hashtags."
+                        ? "Publish photo posts directly to NVO's Business or Creator Instagram account; no Facebook Page is needed."
                         : p === "tiktok"
                           ? "Send a photo post to the account’s TikTok inbox. Finish posting in TikTok."
                           : "Photo updates sent to subscribed customers through an approved marketing template."}
@@ -352,7 +355,7 @@ export function SocialStudio({
                         <label className="checkbox">
                           <input
                             type="checkbox"
-                            checked={a.auto_publish === 1}
+                            checked={Boolean(a.auto_publish)}
                             disabled={busy || !data.manage}
                             onChange={(e) =>
                               void act(
@@ -415,10 +418,7 @@ export function SocialStudio({
                         void act(
                           "connect",
                           {
-                            provider:
-                              p === "facebook" || p === "instagram"
-                                ? "meta"
-                                : p,
+                            provider: p,
                           },
                           "WhatsApp connected. Choose its default below.",
                         )

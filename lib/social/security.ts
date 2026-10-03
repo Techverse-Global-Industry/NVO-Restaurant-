@@ -94,3 +94,17 @@ export function connectionReadiness() {
   }
   return { ready: !reasons.length, reasons };
 }
+// Instagram Login has distinct Instagram credentials and its own OAuth/API flow.
+export function instagramReadiness() {
+  const readiness = connectionReadiness();
+  const reasons = readiness.reasons.filter(
+    (reason) => !reason.includes("Meta app"),
+  ).map((reason) =>
+    reason === "Choose the Meta API version in server setup."
+      ? "Choose the Instagram Graph API version in server setup."
+      : reason,
+  );
+  if (!process.env.INSTAGRAM_APP_ID || !process.env.INSTAGRAM_APP_SECRET)
+    reasons.push("The Instagram Login app credentials have not been configured.");
+  return { ready: !reasons.length, reasons };
+}

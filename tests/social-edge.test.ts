@@ -34,7 +34,7 @@ function account(p: Platform) {
     )
     .run(p, p, p, p, seal("test", p), now, now);
 }
-function save(description = "Our next restaurant story.") {
+async function save(description = "Our next restaurant story.") {
   const e: Entry = {
     id: randomUUID(),
     kind: "posts",
@@ -45,11 +45,11 @@ function save(description = "Our next restaurant story.") {
     status: "published",
     sort: 1,
   };
-  transaction(() => {
-    db()
+  await transaction(async () => {
+    await db()
       .prepare("INSERT INTO entries VALUES(?,?,?)")
       .run(e.id, e.kind, JSON.stringify(e));
-    queueEntry(e);
+    await queueEntry(e);
   });
   return e;
 }
@@ -57,22 +57,22 @@ const jobs = () => db().prepare("SELECT * FROM social_jobs").all() as Job[];
 const response = (data: unknown) =>
   new Response(JSON.stringify(data), { status: 200 });
 const media = async () => "https://restaurant.example.com/social-media/example";
-test("separate workers cannot concurrently claim two jobs for the same account", () => {
+test("separate workers cannot concurrently claim two jobs for the same account", async () => {
   account("facebook");
-  save();
-  save();
-  assert.ok(claimJob());
-  assert.equal(claimJob(), undefined);
+  await save();
+  await save();
+  assert.ok(await claimJob());
+  assert.equal(await claimJob(), undefined);
   account("instagram");
-  save();
-  assert.equal(claimJob()?.account_id, "instagram");
+  await save();
+  assert.equal((await claimJob())?.account_id, "instagram");
 });
 test("long WhatsApp copy automatically uses a full-details teaser without blocking Facebook", async () => {
   account("facebook");
   account("whatsapp");
   const source =
     "A restaurant update. ".repeat(50) + "Offer requires a reservation.";
-  save(source);
+  await save(source);
   const fetcher = (async (input) =>
     response(
       String(input).includes("/photos")
@@ -81,8 +81,8 @@ test("long WhatsApp copy automatically uses a full-details teaser without blocki
           ? { id: "post" }
           : { permalink_url: "https://www.facebook.com/post" },
     )) as typeof fetch;
-  await processJob(claimJob()!, fetcher, media);
-  await processJob(claimJob()!, fetcher, media);
+  await processJob((await claimJob())!, fetcher, media);
+  await processJob((await claimJob())!, fetcher, media);
   assert.equal(
     jobs().find((j) => j.account_id === "facebook")!.status,
     "published",
@@ -114,13 +114,13 @@ test("STOP received during a batch prevents the next recipient's message", async
         templates: { fr: { name: "approved", language: "fr" } },
       }),
     );
-  save();
+  await save();
   const sent: string[] = [];
   const fetcher = (async (_url, init) => {
     const body = JSON.parse(String(init?.body));
     sent.push(body.to);
     const other = body.to === "22912345678" ? "22987654321" : "22912345678";
-    processWhatsAppWebhook({
+    await processWhatsAppWebhook({
       object: "whatsapp_business_account",
       entry: [
         {
@@ -145,7 +145,7 @@ test("STOP received during a batch prevents the next recipient's message", async
     });
     return response({ messages: [{ id: "confirmed" }] });
   }) as typeof fetch;
-  await processJob(claimJob()!, fetcher, media);
+  await processJob((await claimJob())!, fetcher, media);
   assert.equal(sent.length, 1);
   assert.equal(
     (
@@ -160,13 +160,13 @@ test("STOP received during a batch prevents the next recipient's message", async
 });
 test("a post expiring during photo preparation is not sent", async () => {
   account("facebook");
-  const e = save();
+  const e = await save();
   let finalCalls = 0;
   const fetcher = (async (input) => {
     if (String(input).includes("/feed")) finalCalls++;
     return response({ id: "photo" });
   }) as typeof fetch;
-  await processJob(claimJob()!, fetcher, async () => {
+  await processJob((await claimJob())!, fetcher, async () => {
     db()
       .prepare("UPDATE entries SET data=? WHERE id=?")
       .run(

@@ -7,12 +7,13 @@ export async function generateMetadata(): Promise<Metadata> {
   return { alternates: alternates("/", await requestLanguage()) };
 }
 export default async function Page() {
+  const currentSettings = await settings();
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: jsonLd(restaurantSchema(settings(), await requestLanguage())),
+          __html: jsonLd(restaurantSchema(currentSettings, await requestLanguage())),
         }}
       />
       <div className="home-content">

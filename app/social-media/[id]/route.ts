@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { db } from "@/lib/db";
 import { mediaFolder } from "@/lib/social/media";
+import { fetchPublicMedia, storageReady } from "@/lib/storage";
 export const runtime = "nodejs";
 export async function GET(
   _req: Request,
@@ -9,11 +10,26 @@ export async function GET(
 ) {
   const { id } = await params;
   if (!/^[a-f0-9]{48}$/.test(id)) return new Response(null, { status: 404 });
-  const row = db()
+  const row = await db()
     .prepare("SELECT file FROM social_media WHERE id=? AND expires_at>?")
-    .get(id, Date.now()) as { file: string } | undefined;
+    .get<{ file: string }>(id, Date.now());
   if (!row || row.file !== `${id}.jpg`)
     return new Response(null, { status: 404 });
+  if (storageReady()) {
+    try {
+      const image = await fetchPublicMedia(`social/${row.file}`);
+      return new Response(image.body, {
+        headers: {
+          "Content-Type": "image/jpeg",
+          "Cache-Control": "public, max-age=3600",
+          "X-Robots-Tag": "noindex, nofollow",
+          "X-Content-Type-Options": "nosniff",
+        },
+      });
+    } catch {
+      return new Response(null, { status: 404 });
+    }
+  }
   try {
     return new Response(await readFile(path.join(mediaFolder(), row.file)), {
       headers: {
