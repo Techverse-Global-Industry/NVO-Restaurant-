@@ -204,6 +204,35 @@ test("OAuth connects only selected eligible accounts without backfilling posts",
   assert.equal(rows().length, 0);
   assert.equal((await pendingAccounts("social-owner")).length, 0);
 });
+test("Instagram Login trusts the profile from its exchanged token when Meta serializes a large user ID", async () => {
+  const previousId = process.env.INSTAGRAM_APP_ID;
+  const previousSecret = process.env.INSTAGRAM_APP_SECRET;
+  process.env.INSTAGRAM_APP_ID = "instagram-test-app";
+  process.env.INSTAGRAM_APP_SECRET = "instagram-test-secret";
+  try {
+    const start = await beginConnection("social-owner", "instagram");
+    const state = new URL(start.url).searchParams.get("state")!;
+    const fetcher = (async (input) => {
+      const url = String(input);
+      if (url.includes("api.instagram.com/oauth/access_token"))
+        // Deliberately above Number.MAX_SAFE_INTEGER, as Meta can return IDs this way.
+        return response({ access_token: "short-token", user_id: 9007199254740993 });
+      if (url.startsWith("https://graph.instagram.com/access_token"))
+        return response({ access_token: "long-token", expires_in: 3600 });
+      return response({ user_id: "9007199254740993", username: "nvo" });
+    }) as typeof fetch;
+    await finishConnection(state, start.cookie, "instagram", "code", fetcher);
+    const candidates = await pendingAccounts("social-owner");
+    assert.equal(candidates.length, 1);
+    assert.equal(candidates[0].remote_id, "9007199254740993");
+    assert.equal(candidates[0].name, "@nvo");
+  } finally {
+    if (previousId === undefined) delete process.env.INSTAGRAM_APP_ID;
+    else process.env.INSTAGRAM_APP_ID = previousId;
+    if (previousSecret === undefined) delete process.env.INSTAGRAM_APP_SECRET;
+    else process.env.INSTAGRAM_APP_SECRET = previousSecret;
+  }
+});
 test("website save and outbox roll back together on invalid social input", async () => {
   const e = post();
   await assert.rejects(save(e, { mode: "wrong" }));

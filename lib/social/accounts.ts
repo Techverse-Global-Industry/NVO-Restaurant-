@@ -193,11 +193,15 @@ export async function finishConnection(
       false,
       fetcher,
     );
-    if (!profile.user_id || String(profile.user_id) !== String(short.user_id))
+    // Meta can return the temporary OAuth user_id as a JSON number, which may
+    // lose precision for Instagram's large numeric IDs. The profile fetched
+    // with the exchanged token is the authoritative connected account.
+    const profileId = profile.user_id ?? profile.id;
+    if (!profileId)
       throw new Error("Instagram returned an unexpected account. Reconnect the intended NVO account.");
     candidates.push({
-      id: randomUUID(), platform: "instagram", remote_id: String(profile.user_id),
-      name: `@${profile.username || profile.user_id}`,
+      id: randomUUID(), platform: "instagram", remote_id: String(profileId),
+      name: `@${profile.username || profileId}`,
       token: JSON.stringify({ mode: "instagram_login", access_token: token.access_token }),
       expires_at: Number.isFinite(token.expires_in) ? Date.now() + token.expires_in * 1000 : null,
     });
