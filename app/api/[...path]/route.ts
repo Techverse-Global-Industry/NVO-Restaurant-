@@ -110,7 +110,12 @@ export async function GET(
       if (user) await markStaffBrowser();
       return json({
         user,
-        configured: !!process.env.ADMIN_PASSWORD,
+        // ADMIN_PASSWORD only bootstraps the first owner record. Once a staff
+        // account exists, removing that deployment secret must not lock staff
+        // out of an otherwise working restaurant desk.
+        configured: !!(await db()
+          .prepare("SELECT id FROM staff LIMIT 1")
+          .get<{ id: string }>()),
       });
     }
     if (route === "admin/data") {
