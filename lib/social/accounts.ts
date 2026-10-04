@@ -95,7 +95,7 @@ export async function beginConnection(staffId: string, provider: ConnectionProvi
             client_id: process.env.INSTAGRAM_APP_ID!,
             scope: "instagram_business_basic,instagram_business_content_publish",
             enable_fb_login: "0",
-            force_authentication: "1",
+            force_reauth: "true",
           }
         : {
             client_key: process.env.TIKTOK_CLIENT_KEY!,
