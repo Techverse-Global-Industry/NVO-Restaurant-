@@ -152,10 +152,23 @@ export function SocialStudio({
     const timer = setInterval(() => {
       if (document.visibilityState === "visible") void refresh();
     }, 10000);
-    if (new URLSearchParams(location.search).get("social") === "error")
+    const social = new URLSearchParams(location.search);
+    if (social.get("social") === "error") {
+      const problems: Record<string, string> = {
+        "instagram-credentials":
+          "Meta accepted the login but rejected the Instagram App ID and App Secret pair. Copy the Instagram App Secret from the same Meta page as the Instagram App ID, save it in Netlify, then reconnect.",
+        "instagram-token":
+          "Meta accepted the login but could not issue the long-lived publishing token. Re-copy the matching Instagram App Secret in Netlify, deploy once, then reconnect.",
+        "instagram-account":
+          "Meta returned a different Instagram account. Reconnect while signed in to the intended NVO Business or Creator account.",
+        "instagram-access":
+          "Meta did not grant publishing access. Confirm the NVO Instagram account is a Business or Creator account and has accepted its tester invite.",
+      };
       setError(
-        "The account connection was not completed. Check app setup and permissions, then try again.",
+        problems[social.get("social_error") || ""] ||
+          "The account connection was not completed. Check app setup and permissions, then try again.",
       );
+    }
     return () => {
       active = false;
       clearInterval(timer);

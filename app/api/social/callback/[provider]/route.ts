@@ -2,6 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { finishConnection } from "@/lib/social/accounts";
 import { publicSite } from "@/lib/social/security";
 export const runtime = "nodejs";
+
+function safeFailureCode(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  if (message.startsWith("Instagram authorization failed."))
+    return "instagram-credentials";
+  if (message.startsWith("Instagram could not issue a long-lived publishing token."))
+    return "instagram-token";
+  if (message.startsWith("Instagram returned an unexpected account."))
+    return "instagram-account";
+  if (message.includes("Reconnect this account")) return "instagram-access";
+  return "connection";
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ provider: string }> },
@@ -33,8 +46,9 @@ export async function GET(
       );
     await finishConnection(state, cookie, provider as "meta" | "instagram" | "tiktok", code);
     url.searchParams.set("social", "choose");
-  } catch {
+  } catch (error) {
     url.searchParams.set("social", "error");
+    url.searchParams.set("social_error", safeFailureCode(error));
   }
   const response = NextResponse.redirect(url);
   response.cookies.set("nvo_social_oauth", "", {
