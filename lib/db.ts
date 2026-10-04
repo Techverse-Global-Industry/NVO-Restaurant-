@@ -160,9 +160,19 @@ function pool() {
   const url = postgresUrl();
   if (!url) throw new Error("NVO_DATABASE_URL is required for PostgreSQL access.");
   const parsed = new URL(url);
-  if (process.env.NETLIFY && parsed.hostname.endsWith(".pooler.supabase.com") && parsed.port !== "6543")
+  const isSupabasePooler = parsed.hostname.endsWith(".pooler.supabase.com");
+  if (process.env.NETLIFY && isSupabasePooler && parsed.port !== "6543")
     throw new Error("Netlify must use Supabase's transaction pooler URL on port 6543.");
-  globalDb.nvoPool = new Pool({ connectionString: url, max: 1, connectionTimeoutMillis: 5000, idleTimeoutMillis: 30000, ssl: { rejectUnauthorized: true } });
+  globalDb.nvoPool = new Pool({
+    connectionString: url,
+    max: 1,
+    connectionTimeoutMillis: 5000,
+    idleTimeoutMillis: 30000,
+    // Supabase's transaction pooler requires TLS but its chain is not in Netlify's
+    // default CA bundle. This is equivalent to sslmode=require: encrypted, without
+    // client-side CA verification. All other PostgreSQL hosts retain strict checks.
+    ssl: { rejectUnauthorized: !isSupabasePooler },
+  });
   return globalDb.nvoPool;
 }
 function sqliteConnection(): Connection {
